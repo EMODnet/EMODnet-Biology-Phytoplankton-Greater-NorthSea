@@ -21,5 +21,11 @@ filelist <- list.files("rawData")
 allData <- lapply(filelist, function(x) 
   read_delim(file.path("rawData", x), 
              delim = ";", 
-             col_types = "cccTnnnccc")) %>%
-  bind_rows(.id = "mrgid")
+             col_types = "cccTnnlccc")) %>%
+  set_names(sub(".csv", "", filelist)) %>%
+  bind_rows(.id = "mrgid") %>%
+  mutate(mrgid = sub("region", "", mrgid))
+
+write_delim(allData, "data/allData.csv")
+
+
