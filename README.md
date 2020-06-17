@@ -1,4 +1,4 @@
-﻿# EMODnet Biology phytoplankton of the Greater North Sea
+# EMODnet Biology phytoplankton of the Greater North Sea
 
 ## Introduction
 
@@ -44,7 +44,7 @@ Raw data were downloaded from EMODnet Biology using WFS requests. This was done 
 The datasets included were:
 
 | Dataset | EMODnet Biology link |
-| ------------------------------------------------------ | ------------------------------------------------------------------ |
+| ---------------------------- | ------------------------------------------------------------------ |
 | Continuous Plankton Recorder (Phytoplankton) | https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=785 |		
 | NODC World Ocean Database 2001: Plankton Data | https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=1985 |
 | REPHY: Network Monitoring phytoplankton | https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=2451 |
