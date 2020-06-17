@@ -1,6 +1,10 @@
-# {{project_name}}
+# EMODnet Biology phytoplankton of the Greater North Sea
 
-{{project_description}}
+The project aims to produce comprehensive data product of the occurence and absence of (phyto)plankton species. As a basis, data from EMODnet Biology are used. The selection of relevant datasets is optimized in order to find all planktonic species, and exclude all species that are not planktonic. The occurences from EMODnet Biology were complemenented with absence data assuming fixed species lists within each dataset and year. The products are presented as maps of the distribution of the 100 most common species of (phyto)plankton in the Greater North Sea. 
+
+This product then is also used for interpolated maps, using the DIVA software. 
+
+
 
 ## Directory structure
 
