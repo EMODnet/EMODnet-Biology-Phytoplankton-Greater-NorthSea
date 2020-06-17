@@ -25,28 +25,35 @@ layerurl <- "http://geo.vliz.be/geoserver/MarineRegions/ows?service=WFS&version=
 # download layer as spatial sf object
 regions <- sf::st_read(layerurl)
 st_crs()
-coi <- c("Ireland", "United Kingdom", "Norway", "Sweden", "Denmark",
-         "Germany", "Netherlands", "Belgium", "France")
-roi <- regions %>% sf::st_drop_geometry() %>% 
-  filter(country %in% coi) %>% 
-  filter(grepl("North Sea", iho_sea) |
-           grepl("Celtic", iho_sea) |
-           grepl("Channel", iho_sea) |
-           grepl("Scotland", iho_sea) |
-           (grepl("Atlantic", iho_sea) & grepl("United Kingdom", country)) |
-         (grepl("Atlantic", iho_sea) & grepl("Ireland", country))
-  ) %>%
-  # filter(!grepl("Arctic", marregion)) %>%
-  # filter(!grepl("Atlantic", marregion)) %>%
-  # filter(!grepl("Barentsz", marregion)) %>%
-  # filter(!grepl("Baltic", marregion)) %>%
-  # filter(!grepl("Norwegian Sea", marregion) | country == "United Kingdom") %>%
-  # filter(!grepl("Greenland", marregion)) %>%
-  distinct(mrgid, marregion)
 
-write_delim(roi, "data/regions.csv", delim = ";")
+# coi <- c("Ireland", "United Kingdom", "Norway", "Sweden", "Denmark",
+#          "Germany", "Netherlands", "Belgium", "France")
+# roi <- regions %>% sf::st_drop_geometry() %>% 
+#   filter(country %in% coi) %>% 
+#   filter(grepl("North Sea", iho_sea) |
+#            grepl("Celtic", iho_sea) |
+#            grepl("Channel", iho_sea) |
+#            grepl("Scotland", iho_sea) |
+#            (grepl("Atlantic", iho_sea) & grepl("United Kingdom", country)) |
+#          (grepl("Atlantic", iho_sea) & grepl("Ireland", country))
+#   ) %>%
+#   distinct(mrgid, marregion)
+#   
+#   # This was a nice try, but not complete. abandonned
+
+
+# new try: manual selection of areas in QGIS. Saved as separate file
+
+list.files("data/derived_data")
+roi <- st_read("data/derived_data/greater_north_sea-selection_from_eez-iho-union-v2.geojson")
+roi %>% select(mrgid) %>% plot()
+
+roi %>% st_drop_geometry() %>%
+  write_delim("data/derived_data/regions.csv", delim = ";")
 
 regions %>% filter(mrgid %in% roi$mrgid) %>%
   ggplot() +
-  geom_sf() +
-  geom_sf_label(aes(label = mrgid))
+  geom_sf(fill = "blue") +
+  geom_sf(data = regions, fill = "transparent", color = "white") +
+  geom_sf_text(aes(label = mrgid), size = 2.5) +
+  coord_sf(st_bbox(roi)[c(1,3)], st_bbox(roi)[c(2,4)], expand = T)
