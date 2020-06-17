@@ -13,7 +13,11 @@ roi <- read_delim("data/derived_data/regions.csv", delim = ";")
 regions %>% filter(mrgid %in% roi$mrgid) %>%
   ggplot() +
   geom_sf(fill = "blue", color = "white") +
-  geom_sf_text(aes(label = mrgid), size = 2.5, color = "white")
+  geom_sf_text(aes(label = mrgid), size = 2, color = "white") +
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
+# ggsave("data/derived_data/regionsOfInterest.png", width = 4, height =  5, )
 
 #== download data by geographic location and trait =====================================
 
