@@ -169,7 +169,7 @@ for(ii in 1:length(roi$mrgid)){
     datasetid <- getDatasets$datasetid[jj]
     mrgid <- roi$mrgid[ii]
     print(paste("downloadingdata for", roi$marregion[ii], "and", getDatasets$datasetid[jj]))
-    downloadURL <- paste0("https://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_basic&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+datasetid+IN+(", datasetid, ");context%3A0100;&outputFormat=csv")
+    downloadURL <- paste0("https://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+datasetid+IN+(", datasetid, ");context%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")    
     data <- read_csv(downloadURL) 
     filename = paste0("region", roi$mrgid[ii], "datasetid", datasetid,  ".csv")
     if(nrow(data) != 0){
@@ -182,7 +182,7 @@ filelist <- list.files("data/raw_data/byDataset")
 all2Data <- lapply(filelist, function(x) 
   read_delim(file.path("data", "raw_data/byDataset", x), 
              delim = ";", 
-             col_types = "cccTnnlccc")) %>%
+             col_types = "ccccccTnnlccccccccccccccc")) %>%
   set_names(sub(".csv", "", filelist)) %>%
   bind_rows(.id = "mrgid") #%>%
   # mutate(mrgid = sub("region", "", mrgid))
@@ -192,6 +192,6 @@ write_delim(all2Data, file.path(dataDir, "all2Data.csv"), delim = ";")
 datasetidsoi <- all2Data %>% distinct(datasetid) %>% 
   mutate(datasetid = sub('http://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=', "", datasetid, fixed = T))
 
-all2Data %>% distinct(scientificnameaccepted) %>% dim() #  5440 species
-all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 95560 localities
+all2Data %>% distinct(scientificnameaccepted) %>% dim() #  4377 species
+all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 94327 localities
 
