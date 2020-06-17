@@ -1,0 +1,94 @@
+---
+title: "WP4_phy_final_prod.Rmd"
+author: "Luuk van der Heijden"
+date: "15 june 2020"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+# Global options
+
+```{r setup, include=FALSE}
+rm(list = ls())
+
+knitr::opts_chunk$set(echo = TRUE)
+
+require(tidyverse)
+```
+
+## We now have the dataset we want to work with. These datasets, however, some things still have to be adjusted. 
+
+```{r datasetPreparation}
+
+# #############################################################################
+# Load the fix_phy.Rdata that was created for the specific location (e.g. NorthSea)
+# #############################################################################
+load(file.path("../data/raw_data/fix_phy_NorthSea.Rdata"))
+
+# 1. Seasons have to be added so that we can use them later. 
+# 2. Winter years were added. This is basically the same as the normal year, except for december in which we add a year
+#    This can be used to group winter months together. E.g. dec 2011, jan 2012 and feb 2012 are all in one winter season
+# 3. Occurrence has to numerical
+
+temp_phy <- fix_phy %>%
+  mutate(season = case_when(
+    month %in% 3:5 ~ "spring",
+    month %in% 6:8 ~ "summer",
+    month %in% 9:11 ~ "autumn",
+    month %in% 1:2 ~ "winter",
+    month %in% 12 ~ "winter")) %>%                       # 1. Seasons were added
+  mutate(date_year = as.numeric(date_year)) %>%
+  mutate(wint_year = 
+           case_when(
+             month < 12 ~ date_year,
+             month > 11 ~ (date_year + 1))) %>%          # 2. Winter year was assigned 
+# Both the words "present"and "Present" are changed to numerical format (or 1)
+  mutate(occurs = case_when(tolower(occurrenceStatus) == "present" ~ 1)) %>% 
+  dplyr::select(aphiaID, scientificName, genus, species, abbr,
+         date, eventID, decimalLatitude, decimalLongitude, wint_year, date_year,
+         season, occurs) 
+
+# #############################################################################
+# 4. Coordinates have to be changed (from WGS84 to UTM)
+phy <- temp_phy %>% 
+  st_as_sf(coords = c('decimalLongitude', 'decimalLatitude'), crs = 4326) %>%  # This was the old coordinate code
+  st_transform(crs = 32631) %>%                                                # This is the new coordinate code used
+  mutate(xUTM = st_coordinates(.)[,1],                                         # We then extract them and assign them
+         yUTM = st_coordinates(.)[,2]) %>%                                     # to x and y columns
+  st_drop_geometry()                                                           # and drop the old geometry column
+
+```
+
+# Finally, we remove the duplicates that originated from two datasets and create the final product that can be plotted
+
+```{r datasetFinalPreparation}
+
+# #############################################################################
+# Create two datasets, one for species and one for genus level
+# #############################################################################
+
+# Species datasets (for which we drop the genus levels only)
+phy_sp <- phy %>%
+  filter(!is.na(species)) %>%
+  dplyr::select(aphiaID, scientificName, abbr, date, eventID, xUTM, yUTM, wint_year, date_year,
+         season, occurs) %>%
+  distinct(aphiaID, scientificName, date, eventID, xUTM, yUTM, wint_year, date_year,
+         season, occurs, .keep_all = TRUE) # Here we remove the duplicates that originated from two datasets (phy_southern_ns_71_73 and 
+# phy_southern_ns_72) that seem to have duplicates
+
+# Genus datasets
+phy_gen <- phy %>%
+  dplyr::select(genus, abbr, date, eventID, xUTM, yUTM, wint_year, date_year,
+         season, occurs) %>%
+  distinct(genus, abbr, date, xUTM, yUTM, .keep_all = TRUE) # Here we remove the duplicates that originated due to focussing on genera alone
+# This is something to keep in mind, when plotting the maps and figures.
+  
+# #############################################################################
+# Save phy files
+save(phy_sp, file = "../data/raw_data/phy_sp.Rdata")
+save(phy_gen, file = "../data/raw_data/phy_gen.Rdata")
+
+```
+
