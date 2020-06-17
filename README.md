@@ -4,7 +4,7 @@ The project aims to produce comprehensive data product of the occurence and abse
 
 This product then is also used for interpolated maps, using the DIVA software. 
 
-
+![Map of regions](data/derived_data/regionsOfInterest.png)
 
 ## Directory structure
 
