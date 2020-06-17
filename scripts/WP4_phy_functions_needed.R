@@ -94,7 +94,7 @@ effort_season <- function(df){
 }
 
 
-# Plot 1: plot the occurrence per season / per year for each species including the effort
+# Plot 1a: plot the occurrence per season / per year for each species including the effort
 plot_ts_eff <- function(df, sp_gen, begin, end) {
   ggplot(df, aes(date_year, season)) +
     geom_point(aes(size = effort_per_season, color = rel_abun)) +
@@ -110,7 +110,7 @@ plot_ts_eff <- function(df, sp_gen, begin, end) {
 }
 
 
-# Plot 1.5: plot the occurrence over season for each species including the effort
+# Plot 1b: plot the occurrence over season for each species including the effort
 plot_season_eff <- function(df, sp_gen, begin, end) {
 
   ggplot(df, aes(season, rel_abun)) +
@@ -123,37 +123,7 @@ plot_season_eff <- function(df, sp_gen, begin, end) {
 }
 
 
-# Plot 2a: plot the presence/absence map using ggplot, geom_raster and sf
-plot_mean_abun <- function(df, pres_abse, LON, LAT, speciesName, binx, biny){
-  ggplot(df, aes(x = LON, y = LAT)) +
-    stat_summary_2d(fun = mean, aes(z = pres_abse), binwidth = c(binx,biny)) +
-    scale_fill_gradientn("Relative abundance", colours = (viridis::viridis(5)), 
-                         breaks = c(0,0.25,0.5,0.75,1), labels = c(0,0.25,0.5,0.75,1), limits = c(0,1)) +
-    ggtitle(speciesName) + 
-    geom_sf(data = bgmap, aes(x = LON, y = LAT), fill = "darkgrey") +
-    theme(panel.background = element_rect(fill = "lightgrey"),
-          panel.grid = element_line(color = "black")) +
-    labs(x = "Longitude", y = "Latitude") +
-    coord_sf(xlim = c(150000,900000), ylim = c(5650000,6250000)) 
-}
-
-# Plot 2b: the presence/absence map (points on grid raster) including effort (as alpha)
-plot_mean_point <- function(df, pres_abse, Alpha, long, lat, speciesName){
-  ggplot(data = df) +
-    geom_point(shape = 21, color = "black", aes_string(x = long, y = lat, fill = pres_abse, size = 1.5, alpha = Alpha), show.legend = TRUE) +
-    scale_fill_continuous("Relative abundance", type = "viridis", limits = c(0,1)) +
-    scale_alpha_continuous("Events/grid", range = c(0,1),
-                breaks = c(1,5,10,50,100,500), labels = c(1,5,10,50,100,500), limits = c(1,500)) +
-    scale_size(guide = "none") +
-    guides(alpha = guide_legend(override.aes = list(size = 6), order = 1)) +
-    labs(title = speciesName, x = "Longitude", y = "Latitude") +    
-    geom_sf(data = bgmap, fill = "darkgrey")  +
-    theme(panel.background = element_rect(fill = "lightgrey"),
-          panel.grid = element_line(color = "black")) +
-    coord_sf(xlim = c(150000,900000), ylim = c(5650000,6250000)) 
-}
-
-# Plot 2c: the presence/absence map (points on grid raster) including effort (as size)
+# Plot 2a: the presence/absence map (points on grid raster) including effort (as size)
 plot_abun_point <- function(df, pres_abse, Size, long, lat, speciesName){
   ggplot(data = df) +
     geom_point(aes_string(x = long, y = lat, colour = pres_abse, size = Size), show.legend = TRUE) +
@@ -169,7 +139,7 @@ plot_abun_point <- function(df, pres_abse, Size, long, lat, speciesName){
     coord_sf(xlim = c(150000,900000), ylim = c(5650000,6250000)) 
 }
 
-# Plot 2d: the presence/absence map (points on grid raster) including effort (as size)
+# Plot 2b: the presence/absence map (points on grid raster) including effort (as size)
 plot_abun_point_season <- function(df, pres_abse, Size, long, lat, speciesName){
   ggplot(data = df) +
     geom_point(aes_string(x = long, y = lat, colour = pres_abse, size = Size), show.legend = TRUE) +
@@ -183,4 +153,35 @@ plot_abun_point_season <- function(df, pres_abse, Size, long, lat, speciesName){
           panel.grid = element_line(color = "black", size = 0.1),
           legend.position = "bottom") +
     coord_sf(xlim = c(150000,900000), ylim = c(5650000,6250000))
+}
+
+# Additional plots, not used so far
+# Plot : plot the presence/absence map using ggplot, geom_raster and sf
+plot_mean_abun <- function(df, pres_abse, LON, LAT, speciesName, binx, biny){
+  ggplot(df, aes(x = LON, y = LAT)) +
+    stat_summary_2d(fun = mean, aes(z = pres_abse), binwidth = c(binx,biny)) +
+    scale_fill_gradientn("Relative abundance", colours = (viridis::viridis(5)), 
+                         breaks = c(0,0.25,0.5,0.75,1), labels = c(0,0.25,0.5,0.75,1), limits = c(0,1)) +
+    ggtitle(speciesName) + 
+    geom_sf(data = bgmap, aes(x = LON, y = LAT), fill = "darkgrey") +
+    theme(panel.background = element_rect(fill = "lightgrey"),
+          panel.grid = element_line(color = "black")) +
+    labs(x = "Longitude", y = "Latitude") +
+    coord_sf(xlim = c(150000,900000), ylim = c(5650000,6250000)) 
+}
+
+# Plot : the presence/absence map (points on grid raster) including effort (as alpha)
+plot_mean_point <- function(df, pres_abse, Alpha, long, lat, speciesName){
+  ggplot(data = df) +
+    geom_point(shape = 21, color = "black", aes_string(x = long, y = lat, fill = pres_abse, size = 1.5, alpha = Alpha), show.legend = TRUE) +
+    scale_fill_continuous("Relative abundance", type = "viridis", limits = c(0,1)) +
+    scale_alpha_continuous("Events/grid", range = c(0,1),
+                           breaks = c(1,5,10,50,100,500), labels = c(1,5,10,50,100,500), limits = c(1,500)) +
+    scale_size(guide = "none") +
+    guides(alpha = guide_legend(override.aes = list(size = 6), order = 1)) +
+    labs(title = speciesName, x = "Longitude", y = "Latitude") +    
+    geom_sf(data = bgmap, fill = "darkgrey")  +
+    theme(panel.background = element_rect(fill = "lightgrey"),
+          panel.grid = element_line(color = "black")) +
+    coord_sf(xlim = c(150000,900000), ylim = c(5650000,6250000)) 
 }
