@@ -34,25 +34,44 @@ In a manual selection step, we fill a field called 'include' to determine what d
 # #############################################################################
 # Load these records with data
 # #############################################################################
-all2Data <- read_delim(file.path("C:/Users/heijd_lk/OneDrive - Stichting Deltares/Documents/REPOS-Checkout/EmodnetPlankton/WP4/EMODnet-Biology-Phytoplankton-NorthSea/data/derived_data/all2Data.csv"), delim = ";")
+all2Data <- read_delim(file.path("../data/derived_data/all2Data.csv"), delim = ";")
 
 # Distinct species in all datasets
 all_spec <- all2Data %>%
   distinct(scientificnameaccepted)
 
+sum(is.na(all2Data$phylum))
+# Use phyla that are associated with phytoplankton
+non_phy_data <- all2Data %>%
+  filter(!phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa", "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa"))
+
+# Distinct species in phy_data
+non_phy_spec <- non_phy_data %>%
+  distinct(scientificnameaccepted, .keep_all = TRUE) %>%
+  select(scientificnameaccepted, phylum, scientificnameauthorship)
+
+write.csv(non_phy_spec, file.path("../data/derived_data/non_phy_spec.csv"), row.names = FALSE)
+
 # Use phyla that are associated with phytoplankton
 phy_data <- all2Data %>%
-  filter(phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa", "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa"))
+  filter(phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa", "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa", NA)) %>%
+  filter(!genus %in% NA)
 
 # Distinct species in phy_data
 phy_spec <- phy_data %>%
-  distinct(scientificnameaccepted)
-
-
+  distinct(scientificnameaccepted, .keep_all = TRUE) %>%
+  select(scientificnameaccepted, aphiaidaccepted, phylum, scientificnameauthorship) 
+  
+# Write csv
+write.csv(phy_spec, file.path("../data/derived_data/phy_spec.csv"), row.names = FALSE)
 
 
 # Exclude the species that are not phytoplankton, they are summed in this list. This is specific
-non_phy <- read_delim(file.path("../data/raw_data/NorthSea_specific_exclude_aphiaID.csv"), delim = ";")
+phy_corrected <- read_delim(file.path("../data/derived_data/phy_spec_corrected.csv"), delim = ";")
+
+# Select phytoplankton only in this file
+phy_spec_used <- phy_corrected %>%
+  filter(phy_or_not %in% "phy")
 
 # #############################################################################
 # Here we do the first cleaning of the datasets
@@ -60,44 +79,10 @@ non_phy <- read_delim(file.path("../data/raw_data/NorthSea_specific_exclude_aphi
 # 2. We exclude the observation if it doesn't contain any data on genus or species level
 # 3. We exclude the duplicates for observations with the same aphiaID, dataset, date and location
 # #############################################################################
-clean_phy <- rec_phy %>% 
-  dplyr::select(aphiaID, scientificName, dataset_id, 
-         eventID, locality, collectionCode, 
-         eventDate, year, date_year,
-         decimalLatitude, decimalLongitude, occurrenceStatus, 
-         kingdom, phylum, class, order, family, genus, species) %>%
-  anti_join(non_phy, by = "aphiaID") %>%                                    # Exclude non-phytoplankton
-  filter(!is.na(genus))  %>%                                                # Exclude if not genus or species level
-  distinct(aphiaID, dataset_id, eventDate, decimalLatitude, decimalLongitude, .keep_all = TRUE) # Filter out the duplicates
+clean_phy <- phy_data %>% 
+  filter(scientificnameaccepted %in% phy_spec_used$scientificnameaccepted) %>%    # Exclude non-phytoplankton
+  distinct(aphiaid, datasetID, datecollected, decimallongitude, decimallatitude, .keep_all = TRUE)# Filter out the duplicates
 
-# #############################################################################
-# Select the largest datasets
-# #############################################################################
-# The total amount of datasets in OBIS
-dsns <- dataset(geometry = "POLYGON ((-3 56, 9.5 56, 9.5 51,-3 51, -3 56))") %>%
- rename(dataset_id = id) %>%
- rename(website = url) %>%
-  dplyr::select(dataset_id, title, website) %>%
-    mutate(abbr = gsub("^.*?=", "", website))
-
-# The datasets that contain phytoplankton species
-phy_datasets <- clean_phy %>%
-  left_join(dsns, by = "dataset_id") %>%
-  group_by(dataset_id, title, website) %>% summarize(n_phy = n()) %>%
-  arrange(-n_phy)  %>%
-  mutate(abbr = gsub("^.*?=", "", website))
-
-# If you want to have these datasets in a csv file
-#write.csv(phy_datasets, file.path(datadir, file="phy_datasets.csv"),row.names = FALSE)
-
-# Paste the abbreviation of these datasets into the main dataframe
-clean_phy <- clean_phy %>%
-  left_join(phy_datasets) %>%
-  dplyr::select(aphiaID, scientificName, dataset_id, abbr,  
-         eventID, locality, collectionCode, 
-         eventDate, year, date_year,
-         decimalLatitude, decimalLongitude, occurrenceStatus, 
-         kingdom, phylum, class, order, family, genus, species)
 
 ```
 
@@ -111,16 +96,16 @@ clean_phy <- clean_phy %>%
 
 # Wrong format, first do a check overall
 # Make sure the dates in eventDate are in the correct format
-clean_phy <- clean_phy %>% 
-  mutate(eventDate = trimws(eventDate)) %>%
-  mutate( date = 
-    case_when(
-      grepl("T", eventDate) ~ lubridate::as_date(sub(pattern = "\\T.*", "", eventDate)), # dates with "T"
-      grepl("^\\d{4}-\\d{2}-\\d{2}$", eventDate) ~ as.Date(eventDate, format = "%Y-%m-%d"),   # dates format yyyy-mm-dd
-      grepl("(^\\d{4}\\-\\d{2}){1}$", eventDate) ~ lubridate::ymd(paste(eventDate, "01")),   # dates format yyyy-mm
-      grepl("^\\d{4}$", eventDate) ~ lubridate::ymd(paste(eventDate, "01", "01"))    # dates format yyyy 
-    )
-  )
+#clean_phy <- clean_phy %>% 
+#  mutate(date = trimws(eventDate)) %>%
+#  mutate( date = 
+#    case_when(
+#      grepl("T", eventDate) ~ lubridate::as_date(sub(pattern = "\\T.*", "", eventDate)), # dates with "T"
+#      grepl("^\\d{4}-\\d{2}-\\d{2}$", eventDate) ~ as.Date(eventDate, format = "%Y-%m-%d"),   # dates format yyyy-mm-dd
+#      grepl("(^\\d{4}\\-\\d{2}){1}$", eventDate) ~ lubridate::ymd(paste(eventDate, "01")),   # dates format yyyy-mm
+#      grepl("^\\d{4}$", eventDate) ~ lubridate::ymd(paste(eventDate, "01", "01"))    # dates format yyyy 
+#    )
+#  )
 
 ```
 
@@ -138,108 +123,14 @@ clean_phy <- clean_phy %>%
 # And duplicates that occurred due to two sample moments on one day
 # #############################################################################
 fix_phy <- clean_phy %>%
-  filter(!grepl('Sylt_Road', collectionCode)) %>%
-    bind_rows(clean_phy %>%
-      filter(grepl('Sylt_Road', collectionCode)) %>%   # 1. Merge Sylt-Romo datasets
-        mutate(dataset_id = "sylt_dataset_id") %>%     # 1. We give this merged dataset a different name 
-        mutate(abbr = "sylt-romo") %>%                 # 3. Change abbreviation
-        mutate(locality = case_when(
-          locality == "1" ~ "List-Reede", 
-          locality != "1" ~ locality)) %>%             # 1. We give the locality the same name, since they have the same coordinates 
-        unite(eventID, c("locality", "date"), sep = "-", remove = FALSE)) %>% # 2. Create eventID
-  filter(!dataset_id %in% "46c52e34-73b7-45e6-a2ac-742e4c2058c5") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "46c52e34-73b7-45e6-a2ac-742e4c2058c5") %>%   # Focus on Dome_phy dataset
-        unite(eventID, c("decimalLatitude", "decimalLongitude", "date"), sep = "-", remove = FALSE)) %>% # 2. Create eventID
-  filter(!dataset_id %in% "4e2cf30c-b238-4ca9-ae05-0809da31d4cc")  %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "4e2cf30c-b238-4ca9-ae05-0809da31d4cc")  %>%  # Focus on ices_his dataset
-        unite(eventID, c("decimalLatitude", "decimalLongitude", "date"), sep = "-", remove = FALSE)) %>% # 2. Create eventID
-  filter(!dataset_id %in% "cdc3abcf-b4d8-4b14-b4d4-70705884034c") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "cdc3abcf-b4d8-4b14-b4d4-70705884034c") %>%  # Focus on phy_southern_ns 1971-1973
-        mutate(abbr = "phy_southern_ns_71_73")) %>%                       # 3. Change abbreviation
-  filter(!dataset_id %in% "1a88b55b-84b7-4b22-ba1c-b845a8d73e1a") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "1a88b55b-84b7-4b22-ba1c-b845a8d73e1a") %>%  # Focus on phy_western_ns_77_78
-        mutate(abbr = "phy_western_ns_77_78")) %>%                        # 3. Change abbreviation
-  filter(!dataset_id %in% "49884da4-2b9e-4cd0-b23d-cc0acbb950cb") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "49884da4-2b9e-4cd0-b23d-cc0acbb950cb") %>%  # Focus on phy_southern_ns_73_74
-        mutate(abbr = "phy_southern_ns_73_74")) %>%                       # 3. Change abbreviation
-  filter(!dataset_id %in% "d8367698-8a0d-4f69-aaa3-242abf989e17") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "d8367698-8a0d-4f69-aaa3-242abf989e17") %>%  # Focus on phy_southern_ns_72
-        mutate(abbr = "phy_southern_ns_72")) %>%                          # 3. Change abbreviation
-  filter(!dataset_id %in% "6d6b23b6-8c20-43ca-a76a-23ef80f779b7") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "6d6b23b6-8c20-43ca-a76a-23ef80f779b7") %>%       # Focus on Oostende dataset
-        unite(eventID, c("locality", "date"), sep = "-", remove = FALSE)) %>%  # 2. Create eventID
-  filter(!dataset_id %in% "f7d8aa43-cdfe-4be2-82a6-88ee33c5c60c") %>%
-    bind_rows(clean_phy %>%                                                # Focus on BODC
-      filter(dataset_id %in% "f7d8aa43-cdfe-4be2-82a6-88ee33c5c60c") %>%   # 2. Create eventID
-        rename(eventID = collectionCode)) %>%
-  filter(!dataset_id %in% "4354345d-7faf-4376-b326-ffbc04b6b0cd")  %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "4354345d-7faf-4376-b326-ffbc04b6b0cd")  %>%                                # Focus on WOD_09
-        unite(eventID, c("decimalLatitude", "decimalLongitude", "date"), sep = "-", remove = FALSE) %>%  # 2. Create eventID
-        mutate(occurrenceStatus = "present")) %>%                                                        # 4. Fill the occurrencestatus
-  filter(!dataset_id %in% "996c79d5-04aa-4075-ae6c-e5ff60eeae37") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "996c79d5-04aa-4075-ae6c-e5ff60eeae37") %>%  # Focus on phy_western_ns 1976-1977
-        mutate(abbr = "phy_western_ns_76_77")) %>%                        # 3. Change abbreviation
-  filter(!dataset_id %in% "5cb8ee1b-13f3-4bdb-b187-541777fc7df2") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "5cb8ee1b-13f3-4bdb-b187-541777fc7df2") %>%  # Focus on phy_nieuwpoort 1970-1972
-        mutate(abbr = "phy_nieuwpoort_70_72")) %>%                        # 3. Change abbreviation
-  filter(!dataset_id %in% "7b9e09b6-0549-4eb6-9d31-974575c1b400") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "7b9e09b6-0549-4eb6-9d31-974575c1b400") %>%  # Focus on phy_scheldt 1974
-        mutate(abbr = "phy_scheldt_74")) %>%                              # 3. Change abbreviation
-  filter(!dataset_id %in% "ee52390c-f419-4bf2-94fc-c0dae6834b5e") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "ee52390c-f419-4bf2-94fc-c0dae6834b5e") %>%  # Focus on phy_sluice_dock_89_91
-        mutate(abbr = "phy_sluice_dock_89_91")) %>%                       # 3. Change abbreviation
-  filter(!dataset_id %in% "d5479acf-29cc-44b3-b3d7-bd4e40f83efc") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "d5479acf-29cc-44b3-b3d7-bd4e40f83efc")   %>%     # Focus on Hab_Belgie
-        unite(eventID, c("locality", "date"), sep = "-", remove = FALSE)) %>%  # 2. Create eventID
-  filter(!dataset_id %in% "d5b382e5-521f-437a-9889-f031b9dc7cc8") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "d5b382e5-521f-437a-9889-f031b9dc7cc8") %>%  # Focus on phy_southern ns 1971
-        mutate(abbr = "phy_southern_ns_71")) %>%                          # 3. Change abbreviation
-  filter(!dataset_id %in% "cdcddae2-a8e0-4c86-9e8d-f85134876937") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "cdcddae2-a8e0-4c86-9e8d-f85134876937") %>%   # Focus on PANGAEA
-        rename(eventID = collectionCode)) %>%                              # 2. Create eventID
-  filter(!dataset_id %in% "42fb9bf2-df81-440a-9896-3177eeb7810e") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "42fb9bf2-df81-440a-9896-3177eeb7810e") %>%  # Focus on phy_sluice_docks
-        mutate(abbr = "phy_sluice_dock_71_73")) %>%                       # 3. Change abbreviation
-  filter(!dataset_id %in% "8db0897b-ba54-4ef8-86f2-2adba27cb982") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "8db0897b-ba54-4ef8-86f2-2adba27cb982") %>%        # Focus on GBIF_2688 dataset
-        unite(eventID, c("locality", "date"), sep = "-", remove = FALSE)) %>%   # 2. Create eventID
-  filter(!dataset_id %in% "ae9fd704-6b39-42ad-9bcb-0d3c1ff3269f") %>%
-    bind_rows(clean_phy %>%
-      filter(dataset_id %in% "ae9fd704-6b39-42ad-9bcb-0d3c1ff3269f")%>%         # Focus on GBIF_2839 dataset
-        unite(eventID, c("locality", "date"), sep = "-", remove = FALSE)) %>%   # 2. Create eventID
-# Here we remove the NA's in eventID (1559 objects) from the 4 datasets (Tisbe, microbis, Bold_inv, Ala_co)
-  drop_na(eventID) %>%     
-# Here we remove the NA's in eventID (205 objects) from 2 datasets:
-# 1. Micro- and nannoplankton in Belgian coastal waters near Nieuwpoort (ranges of time, e.g. 1970/1972)
-# 2. Occurrences of harmful micro algae within the Belgian Part of the North Sea (only year)
-  drop_na(date) %>%
-# Here we remove the duplicates that occurred due to two sample moments on one day. E.g. in the ODEM-phytoplankton datasets
-# multiple sample were taken on one day. However, because we remove the time of sampling, this will result in two sample
-# on that day. This is interesting but not what we are interested. So if a species is found twice on that day, one of these
-# these duplicates will be removed
-  distinct(aphiaID, abbr, date, decimalLatitude, decimalLongitude, .keep_all = TRUE) %>%
-  mutate(month = lubridate::month(date))
+  distinct(aphiaidaccepted, datasetid, datecollected, decimallatitude, decimallongitude, .keep_all = TRUE) %>%
+  mutate(month = lubridate::month(datecollected)) %>%
+  mutate(year = lubridate::year(datecollected))
 
-# Save the data file that is created here so that we can use it in the next script
-save(fix_phy, file = "../data/raw_data/fix_phy_NorthSea.Rdata")
+# Save file
+save(fix_phy, file = "../data/raw_data/fix_phy.Rdata")
 
+  
 ```
 
 ## Reproducibility
