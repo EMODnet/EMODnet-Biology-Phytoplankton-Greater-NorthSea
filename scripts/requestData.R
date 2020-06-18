@@ -59,6 +59,11 @@ allDataExtra <- read_delim(file.path(dataDir, "allDataExtra.csv"), delim = ";")
 datasetidsoi <- allDataExtra %>% distinct(datasetid) %>% 
   mutate(datasetid = sub('http://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=', "", datasetid, fixed = T))
 
+# MANUAL ADDITION OF DATASETS
+addedDatasets <- tibble(datasetid = c("5449"))
+
+datasetids <- datasetidsoi %>% bind_rows(addedDatasets)
+
 allDataExtra %>% distinct(scientificnameaccepted) %>% dim() # 617 species
 allDataExtra %>% distinct(decimallatitude, decimallongitude) %>% dim() # 26667 localities
 
@@ -66,9 +71,6 @@ allDataExtra %>% distinct(decimallatitude, decimallongitude) %>% dim() # 26667 l
 #
 
 # for new regions, run script above first!
-
-datasetidsoi <- read_delim(file.path(dataDir, "allDatasets.csv"), delim = ";", )
-
 # Get dataset names from IMIS web page via web scraping
 # function that gets the second node "b" from the website (reverse engineering..)
 getDatasetName <- function(datasetid){
@@ -80,14 +82,14 @@ require(rvest)
   html_text(fnames)[2]
 }
 # get all names and urls from id's
-datasetidsoi$name <- sapply(datasetidsoi$datasetid, getDatasetName, simplify = T)
-datasetidsoi$url <- paste0("https://www.vliz.be/en/imis?module=dataset&dasid=", datasetidsoi$datasetid)
+datasetids$name <- sapply(datasetids$datasetid, getDatasetName, simplify = T)
+datasetids$url <- paste0("https://www.vliz.be/en/imis?module=dataset&dasid=", datasetids$datasetid)
 
-write_delim(datasetidsoi, file.path(dataDir, "allDatasets.csv"), delim = ";")
+write_delim(datasetids, file.path(dataDir, "allDatasets.csv"), delim = ";")
  
 #== manual inspection of dataset names =====================================
 
-paste(datasetidsoi$datasetid, datasetidsoi$name)
+paste(datasetids$datasetid, datasetids$name)
 
 #  ok     [1] "785 Continuous Plankton Recorder (Phytoplankton)"                                                                                           
 #  not ok [2] "787 Continuous Plankton Recorder (Zooplankton)"                                                                                             
@@ -117,10 +119,11 @@ paste(datasetidsoi$datasetid, datasetidsoi$name)
 #  ok     [26] "5951 IPMS-PHAEO: Dynamics of coastal eutrophicated ecosystems"                                                                              
 #  ok     [27] "5976 AMORE: Advanced Modelling & Research on Eutrophication & the Structure of Coastal Planktonic Food-webs: Mechanisms & Modelling (AMORE)"
 #  not ok [28] "4687 LifeWatch observatory data: zooplankton observations in the Belgian Part of the North Sea"
-
+#  ok     [29] "5451 Semi-quantitive microplankton analysis (Sylt Roads Time Series) in the Wadden Sea off List, Sylt, North Sea"  
+# 
 # These we are not certain of
 doubtdatasets <- c(1947, 2, 4438, 5666)
-# getdoubtDatasets <- datasetidsoi %>%
+# getdoubtDatasets <- datasetids %>%
 #   filter(datasetid %in% doubtdatasets)
 # 
 # beginDate<- "1995-01-01"
@@ -149,7 +152,7 @@ doubtdatasets <- c(1947, 2, 4438, 5666)
 #   bind_rows(.id = "mrgid") %>%
 #   mutate(mrgid = sub("region", "", mrgid))
 # 
-# doubt_datasetidsoi <- all2DoubtData %>% distinct(datasetid) %>% 
+# doubt_datasetids <- all2DoubtData %>% distinct(datasetid) %>% 
 #   mutate(datasetid = sub('http://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=', "", datasetid, fixed = T))
 # 
 # write_delim(all2DoubtData, file.path(dataDir, "all2DoubtData.csv"), delim = ";")
@@ -162,7 +165,7 @@ doubtdatasets <- c(1947, 2, 4438, 5666)
 # These we are certain of not containing phytoplankton
 notOKdatasets <- c(787, 4412, 5759, 2756, 4687)
 
-getDatasets <- datasetidsoi %>%
+getDatasets <- datasetids %>%
   filter(!datasetid %in% notOKdatasets & !datasetid %in% doubtdatasets)
 
 beginDate<- "1995-01-01"
@@ -172,7 +175,7 @@ for(ii in 1:length(roi$mrgid)){
   for(jj in 1:length(getDatasets$datasetid)){
     datasetid <- getDatasets$datasetid[jj]
     mrgid <- roi$mrgid[ii]
-    print(paste("downloadingdata for", roi$marregion[ii], "and", getDatasets$datasetid[jj]))
+    print(paste("downloading data for ", roi$marregion[ii], "and dataset nr: ", datasetid))
     downloadURL <- paste0("https://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+datasetid+IN+(", datasetid, ");context%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
     data <- read_csv(downloadURL, guess_max = 100000) 
     filename = paste0("region", roi$mrgid[ii], "_datasetid", datasetid,  ".csv")
@@ -181,6 +184,23 @@ for(ii in 1:length(roi$mrgid)){
     }
   }
 }
+
+# Extra: These datasets fall outside the marine regions!!!! Just..
+# See https://www.emodnet-biology.eu/portal/index.php?dasid=5449
+syltdatasetids <- c(5449, 5486:5511) 
+
+for(jj in 1:length(syltdatasetids)){
+  datasetid <- syltdatasetids[jj]
+  print(paste("downloading data for dataset nr: ", datasetid))
+  downloadURL <- paste0("https://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3Adatasetid+IN+%28", datasetid, "%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
+  data <- read_csv(downloadURL, guess_max = 100000) 
+  filename = paste0("Sylt25231_", "datasetid", datasetid,  ".csv")
+  if(nrow(data) != 0){
+    write_delim(data, file.path(downloadDir, "byDataset", filename), delim = ";")
+  }
+}
+
+
 
 filelist <- list.files("data/raw_data/byDataset")
 all2Data <- lapply(filelist, function(x) 
@@ -198,9 +218,6 @@ all2Data <- lapply(filelist, function(x)
 
 write_delim(all2Data, file.path(dataDir, "all2Data.csv"), delim = ";")
 
-datasetidsoi <- all2Data %>% distinct(datasetid) %>% 
-  mutate(datasetid = sub('http://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=', "", datasetid, fixed = T))
-
-all2Data %>% distinct(scientificnameaccepted) %>% dim() #  
-all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 
+all2Data %>% distinct(scientificnameaccepted) %>% dim() #  4805
+all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 94329
 
