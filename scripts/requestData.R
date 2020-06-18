@@ -65,6 +65,10 @@ allDataExtra %>% distinct(decimallatitude, decimallongitude) %>% dim() # 26667 l
 #==== retrieve data by dataset ==============
 #
 
+# for new regions, run script above first!
+
+datasetidsoi <- read_delim(file.path(dataDir, "allDatasets.csv"), delim = ";", )
+
 # Get dataset names from IMIS web page via web scraping
 # function that gets the second node "b" from the website (reverse engineering..)
 getDatasetName <- function(datasetid){
@@ -178,7 +182,7 @@ for(ii in 1:length(roi$mrgid)){
   }
 }
 
- filelist <- list.files("data/raw_data/byDataset")
+filelist <- list.files("data/raw_data/byDataset")
 all2Data <- lapply(filelist, function(x) 
   read_delim(file.path("data", "raw_data/byDataset", x), 
              delim = ";", 
