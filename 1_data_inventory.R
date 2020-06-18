@@ -1,6 +1,8 @@
 
 require(tidyverse)
 
+#=== allData ==== trait based data retrieval ============================
+
 dataDir <- "data/derived_data"
 allData <- read_delim(file.path(dataDir, "allData.csv"), delim = ";")
 
@@ -31,12 +33,13 @@ unique(all2Data$mrgid)
 layerurl <- "http://geo.vliz.be/geoserver/MarineRegions/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=MarineRegions:eez_iho_union_v2&outputFormat=application/json"
 regions <- sf::st_read(layerurl)
 
-regionN <- all2Data %>%
+regionN <- all2Data %>% ungroup() %>%
   group_by(mrgid) %>% summarize(n = n()) %>% ungroup() %>%
   mutate(mrgid = as.numeric(mrgid))
+  
 
 regions %>% right_join(regionN, by = c(mrgid = "mrgid")) %>%
   ggplot() +
   geom_sf(aes(fill = log10(n))) +
-  geom_sf_text(aes(label = objectid_1)) +
+  # geom_sf_text(aes(label = mrgid)) +
   scale_fill_distiller(direction = 1)
