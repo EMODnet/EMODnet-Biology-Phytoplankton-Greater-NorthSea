@@ -190,17 +190,13 @@ all2Data <- lapply(filelist, function(x)
   separate(fileID, c("mrgid", "datasetID"), "_") %>%
   mutate(mrgid = sub("[[:alpha:]]+", "", mrgid)) %>%
   mutate(datasetID = sub("[[:alpha:]]+", "", datasetID))
-
-
   # mutate(mrgid = sub("region", "", mrgid))
-
-
 
 write_delim(all2Data, file.path(dataDir, "all2Data.csv"), delim = ";")
 
 datasetidsoi <- all2Data %>% distinct(datasetid) %>% 
   mutate(datasetid = sub('http://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=', "", datasetid, fixed = T))
 
-all2Data %>% distinct(scientificnameaccepted) %>% dim() #  4567 species
-all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 94327 localities
+all2Data %>% distinct(scientificnameaccepted) %>% dim() #  
+all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 
 
