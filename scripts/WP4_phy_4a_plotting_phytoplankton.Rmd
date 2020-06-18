@@ -5,7 +5,7 @@ output:
       latex_engine: pdflatex
 geometry: "left=1cm, right=1cm, top=0cm, bottom=0cm"
 params:
-  targetSpecies: "Ceratium fusus"
+  targetSpecies: "Acanthostomella norvegica"
   begin: 1995
   end: 2020
   gridX: 15000
@@ -33,7 +33,7 @@ load(file.path("../data/raw_data/phy_sp.Rdata"))
      
 # Remove the duplicates that have the same location and time of sampling (between different datasets)
 phy_sp <- phy_sp %>%
-  distinct(abbr, aphiaID, scientificName, date, xUTM, yUTM, date_year, season, occurs)
+  select(aphiaidaccepted, scientificnameaccepted, datecollected, datasetID, datasetid, mrgid, eventid, month, year, season, xUTM, yUTM, present) 
 
 ```
 
@@ -50,18 +50,18 @@ bgmap <- countriesHigh %>%
 completeZeros_sp <- function(df, species, year){
   selectedDatasets <- df %>% 
     ungroup() %>%
-    dplyr::filter(scientificName ==  species) %>%
-    distinct(abbr) %>% unlist() %>% unname()
+    dplyr::filter(scientificnameaccepted == species) %>%
+    distinct(datasetID) %>% unlist() %>% unname()
   df %>%
-    dplyr::filter(date_year %in% year) %>%
-    dplyr::filter(abbr %in% selectedDatasets) %>%
-    group_by(abbr, date_year) %>%
-    tidyr::complete(nesting(aphiaID, scientificName),         # these will be completed, with their occurrence
-                    nesting(date, xUTM, yUTM, season),   # Combinations of these parameters are to be found
-                    fill = list(occurs = 0)) %>% 
+    dplyr::filter(year %in% year) %>%
+    dplyr::filter(datasetID %in% selectedDatasets) %>%
+    group_by(datasetID, year) %>%
+    tidyr::complete(nesting(aphiaidaccepted, scientificnameaccepted),         # these will be completed, with their occurrence
+                    nesting(datecollected, xUTM, yUTM, season),   # Combinations of these parameters are to be found
+                    fill = list(present = 0)) %>% 
     ungroup() %>%
-    unite(date_xUTM_yUTM, date, xUTM, yUTM, remove = FALSE) %>%
-    filter(scientificName == species) %>%
+    unite(date_xUTM_yUTM, datecollected, xUTM, yUTM, remove = FALSE) %>%
+    filter(scientificnameaccepted == species) %>%
     ungroup()
 }
 
@@ -86,8 +86,8 @@ co2gr<-function(lon,lat,fdx,fdy){
 # Create data for time series plot including effort
 time_effort <- function(df) {
   df %>% ungroup() %>%
-    group_by(abbr, date_year, season) %>%
-    summarize(effort_per_season = n(), positives = sum(occurs == 1)) %>%
+    group_by(datasetID, year, season) %>%
+    summarize(effort_per_season = n(), positives = sum(present == 1)) %>%
     mutate(rel_abun = positives/effort_per_season) %>% ungroup() %>%
     mutate(season = factor(season, levels = rev(c("autumn", "summer", "spring", "winter")))) 
 }
@@ -99,7 +99,7 @@ effort_function <- function(df, tax_level){
     group_by(gridnr, middleXgrid, middleYgrid) %>%  # alle bewerkingen per grid cell en aphiaID
     summarise(effort = n_distinct(date_xUTM_yUTM),
               effort_n = n(),
-              pres_abse = mean(occurs)) %>%
+              pres_abse = mean(present)) %>%
     ungroup()
 }
 
@@ -108,7 +108,7 @@ effort_season <- function(df){
     group_by(gridnr, season, middleXgrid, middleYgrid) %>%  # alle bewerkingen per grid cell en aphiaID
     summarise(effort = n_distinct(date_xUTM_yUTM),
               effort_n = n(),
-              pres_abse = mean(occurs)) %>%
+              pres_abse = mean(present)) %>%
     ungroup() %>%
     mutate(season = factor(season, levels = rev(c("autumn", "summer", "spring", "winter")))) 
 }
@@ -118,16 +118,36 @@ effort_season <- function(df){
 
 ```{r doCalculations, message=FALSE, warning=FALSE, include=FALSE}
 # Create zeroes:
+completeZeros_sp <- function(df, species, year){
+  selectedDatasets <- df %>% 
+    ungroup() %>%
+    dplyr::filter(scientificnameaccepted == species) %>%
+    distinct(datasetID) %>% unlist() %>% unname()
+  phy_c <- phy_sp %>%
+    group_by(datasetID, year) %>%
+    tidyr::complete(nesting(aphiaidaccepted, scientificnameaccepted),         # these will be completed, with their occurrence
+                    nesting(datecollected, xUTM, yUTM, season),   # Combinations of these parameters are to be found
+                    fill = list(present = 0)) %>% 
+    ungroup() %>%
+    unite(date_xUTM_yUTM, datecollected, xUTM, yUTM, remove = FALSE) %>%
+    filter(scientificnameaccepted == species) %>%
+    ungroup()
+}
+
+phy_n <- phy_sp %>%
+  group_by(scientificnameaccepted) %>%
+  summarise(phy_n = n())
+
 phy_c <- completeZeros_sp(phy_sp, params$targetSpecies, params$begin:params$end)
 
 # This df contains duplicates from different datasets that have the same location and time, which seems unlikely
 dup_zero <- phy_c %>% 
-  arrange(aphiaID, date, xUTM, yUTM, occurs, season) %>%
-  select(-abbr) %>%
+  arrange(aphiaidaccepted, datecollected, xUTM, yUTM, present, season) %>%
+  select(-datasetID) %>%
   duplicated %>% which
 # Create the df with duplicates
 dbs_zero <- phy_c %>% 
-  arrange(aphiaID, date, xUTM, yUTM, occurs, season) %>%
+  arrange(aphiaidaccepted, datecollected, xUTM, yUTM, present, season) %>%
   ungroup() %>%
   slice(sort(c(dup_zero, dup_zero-1))) 
 
@@ -146,7 +166,7 @@ dbs_zero <- phy_c %>%
 
 # Here we remove the duplicates that have the same location and time in different datasets 
 phy_c <- phy_c %>%
-  distinct(aphiaID, scientificName, date, xUTM, yUTM, date_year, season, occurs, .keep_all = TRUE) 
+  distinct(aphiaidaccepted, scientificnameaccepted, datecollected, xUTM, yUTM, year, season, present, .keep_all = TRUE) 
 
 # #############################################################################
 # Include the gridnr in the dataframe
@@ -162,7 +182,7 @@ phy_c$middleYgrid <- grconv$middleYgrid
 #write.csv(phy_c, paste0(path_out, params$targetSpecies, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
 
 # Determine height for first plot
-height_plot1 <- (2+0.5*length(unique(phy_c$abbr))) # Size of height plot 1
+height_plot1 <- (2+0.5*length(unique(phy_c$datasetID))) # Size of height plot 1
 
 # #############################################################################
 # calculate time-series and effort per season
@@ -180,7 +200,7 @@ phy_effort_season <- effort_season(phy_c)
 ```{r functions needed for plotting}
 # Plot 1a: plot the occurrence per season / per year for each species including the effort
 plot_ts_eff <- function(df, sp_gen, begin, end) {
-  ggplot(df, aes(date_year, season)) +
+  ggplot(df, aes(year, season)) +
     geom_point(aes(size = effort_per_season, color = rel_abun)) +
     scale_shape_manual(values = c(21)) +
     scale_size("Effort per season", range = c(0.25,3.5), 
@@ -263,7 +283,8 @@ plot_season_eff(phy_ts_eff, params$targetSpecies, params$begin, params$end)
 # Plot 2a: the presence/absence map (points on grid raster) including effort
 plot_abun_point(df = phy_effort, pres_abse = "pres_abse", Size = "effort", long = "middleXgrid",
                 lat = "middleYgrid", params$targetSpecies, 
-                params$borderx_min, params$borderx_max, params$bordery_min, params$bordery_max)
+                params$borderx_min, params$borderx_max, params$bordery_min, params$bordery_max
+                )
 ```
 
 ## Distribution map 2b: presence/absence points with effort (as color) per season

@@ -11,7 +11,6 @@ output:
 # Global options
 
 ```{r setup, include=FALSE}
-rm(list = ls())
 
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -25,7 +24,7 @@ require(tidyverse)
 # #############################################################################
 # Load the fix_phy.Rdata that was created for the specific location (e.g. NorthSea)
 # #############################################################################
-load(file.path("../data/raw_data/fix_phy_NorthSea.Rdata"))
+load(file.path("../data/raw_data/fix_phy.Rdata"))
 
 # 1. Seasons have to be added so that we can use them later. 
 # 2. Winter years were added. This is basically the same as the normal year, except for december in which we add a year
@@ -39,21 +38,12 @@ temp_phy <- fix_phy %>%
     month %in% 9:11 ~ "autumn",
     month %in% 1:2 ~ "winter",
     month %in% 12 ~ "winter")) %>%                       # 1. Seasons were added
-  mutate(date_year = as.numeric(date_year)) %>%
-  mutate(wint_year = 
-           case_when(
-             month < 12 ~ date_year,
-             month > 11 ~ (date_year + 1))) %>%          # 2. Winter year was assigned 
-# Both the words "present"and "Present" are changed to numerical format (or 1)
-  mutate(occurs = case_when(tolower(occurrenceStatus) == "present" ~ 1)) %>% 
-  dplyr::select(aphiaID, scientificName, genus, species, abbr,
-         date, eventID, decimalLatitude, decimalLongitude, wint_year, date_year,
-         season, occurs) 
+  mutate(present = "1") 
 
 # #############################################################################
 # 4. Coordinates have to be changed (from WGS84 to UTM)
 phy <- temp_phy %>% 
-  st_as_sf(coords = c('decimalLongitude', 'decimalLatitude'), crs = 4326) %>%  # This was the old coordinate code
+  st_as_sf(coords = c('decimallongitude', 'decimallatitude'), crs = 4326) %>%  # This was the old coordinate code
   st_transform(crs = 32631) %>%                                                # This is the new coordinate code used
   mutate(xUTM = st_coordinates(.)[,1],                                         # We then extract them and assign them
          yUTM = st_coordinates(.)[,2]) %>%                                     # to x and y columns
@@ -71,18 +61,13 @@ phy <- temp_phy %>%
 
 # Species datasets (for which we drop the genus levels only)
 phy_sp <- phy %>%
-  filter(!is.na(species)) %>%
-  dplyr::select(aphiaID, scientificName, abbr, date, eventID, xUTM, yUTM, wint_year, date_year,
-         season, occurs) %>%
-  distinct(aphiaID, scientificName, date, eventID, xUTM, yUTM, wint_year, date_year,
-         season, occurs, .keep_all = TRUE) # Here we remove the duplicates that originated from two datasets (phy_southern_ns_71_73 and 
+  distinct(aphiaidaccepted, scientificnameaccepted, datecollected, eventid, xUTM, yUTM, year,
+         season, present, .keep_all = TRUE) # Here we remove the duplicates that originated from two datasets (phy_southern_ns_71_73 and 
 # phy_southern_ns_72) that seem to have duplicates
 
 # Genus datasets
 phy_gen <- phy %>%
-  dplyr::select(genus, abbr, date, eventID, xUTM, yUTM, wint_year, date_year,
-         season, occurs) %>%
-  distinct(genus, abbr, date, xUTM, yUTM, .keep_all = TRUE) # Here we remove the duplicates that originated due to focussing on genera alone
+   distinct(genus, abbr, date, xUTM, yUTM, .keep_all = TRUE) # Here we remove the duplicates that originated due to focussing on genera alone
 # This is something to keep in mind, when plotting the maps and figures.
   
 # #############################################################################
