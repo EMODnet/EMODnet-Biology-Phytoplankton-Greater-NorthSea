@@ -34,7 +34,22 @@ In a manual selection step, we fill a field called 'include' to determine what d
 # #############################################################################
 # Load these records with data
 # #############################################################################
-load(file.path("../data/raw_data/rec_phy.Rdata"))
+all2Data <- read_delim(file.path("C:/Users/heijd_lk/OneDrive - Stichting Deltares/Documents/REPOS-Checkout/EmodnetPlankton/WP4/EMODnet-Biology-Phytoplankton-NorthSea/data/derived_data/all2Data.csv"), delim = ";")
+
+# Distinct species in all datasets
+all_spec <- all2Data %>%
+  distinct(scientificnameaccepted)
+
+# Use phyla that are associated with phytoplankton
+phy_data <- all2Data %>%
+  filter(phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa", "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa"))
+
+# Distinct species in phy_data
+phy_spec <- phy_data %>%
+  distinct(scientificnameaccepted)
+
+
+
 
 # Exclude the species that are not phytoplankton, they are summed in this list. This is specific
 non_phy <- read_delim(file.path("../data/raw_data/NorthSea_specific_exclude_aphiaID.csv"), delim = ";")
