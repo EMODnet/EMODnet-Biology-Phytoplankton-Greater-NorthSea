@@ -1,0 +1,167 @@
+---
+title: "North Sea phytoplankton"
+subtitle: "Narrative"
+author: "Willem Stolte"
+date: "17/06/2020"
+output: html_document
+---
+
+```{css, echo = F}
+.blackbox {
+  padding: 1em;
+  background: white;
+  color: blue;
+  border: 2px solid orange;
+  border-radius: 10px;
+}
+.center {
+  text-align: center;
+}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align="center")
+require(sf)
+require(tidyverse)
+```
+
+
+
+:::: {.blackbox data-latex=""}
+::: {.center data-latex=""}
+Objectives
+:::
+
+1. Extract phytoplankton observations for Greater North Sea from EMODnet Biology
+1. Automize this extraction where possible
+1. Visualize the data for inspection
+1. Determine absence of phytoplankton species in the Greater North Sea
+1. Produce a high quality data product containing both occurence and absence of phytoplanton in Greater North Sea
+::::
+
+
+
+
+# Data extraction
+
+## Geographical scale
+
+The regions that were selected were assembled from the intersection of the IHO regions and the EEZ from the different countries. These subregions have ID's that can be used in the WFS query to the EMODnet Biology database.
+
+```{r mapGreaterNorthSea, message=F, warning=F, comment=F}
+regions <- sf::st_read(quiet = T, dsn = "../data/derived_data/greater_north_sea-selection_from_eez-iho-union-v2.geojson", layer = "greater_north_sea-selection_from_eez-iho-union-v2") %>% st_simplify()
+regions %>% ggplot() +
+  geom_sf(fill = "blue", color = "white") +
+  geom_sf_text(aes(label = mrgid), size = 2, color = "white") +
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
+```
+
+
+For each of these subregions, data extraction was done in a two-step approach. 
+
+1. Extract phytoplankton data by selecting only observations linkted to the trait "phytoplankton".
+1. The unique datasets obtained in the first steps were inspected, and suitable datasets, which were expected to contain phytoplankton, were selected. The suitable datasets were then downloaded completely (without selection for traits)
+
+The reason for these two steps is that not all phytoplankton have been given traits yet. Potentially, many species would not been selected in the first query
+
+## Extraction by trait
+
+```{r readDatasetTable, message=F}
+dataDir <- "../data/derived_data"
+allDatasets <- read_delim(file.path(dataDir, "allDatasets.csv"), delim = ";", )
+allData <- read_delim(file.path(dataDir, "allDataExtra.csv"), delim = ";")
+```
+
+
+This query resulted in `r length(allData$id)` observations from `r length(allDatasets$datasetid)` different datasets. Of these datasets that were specifically related to zooplankton or not to pelagic sampling were excluded. 
+
+
+```{r, message=F, warning=F}
+regionN <- allData %>%
+  group_by(mrgid) %>% summarize(n = n()) %>% ungroup() %>%
+  mutate(mrgid = as.numeric(mrgid))
+
+regions %>% right_join(regionN, by = c(mrgid = "mrgid")) %>%
+  ggplot() +
+  geom_sf(aes(fill = log10(n))) +
+  scale_fill_distiller(direction = 1)
+
+```
+
+
+
+
+
+```{r datasetTable}
+knitr::kable(allDatasets)
+```
+
+
+
+Datasets that, from the title and information on IMIS, do not contain phytoplankton were:
+
+```{r}
+allDatasets %>% filter
+knitr::kable(allDatasets[allDatasets$datasetid %in% c(787, 4412, 5759, 2756, 4687),]$name)
+```
+
+```{r cleanup}
+rm(allDataExtra)
+```
+
+
+
+
+
+
+
+
+
+
+Datasets that we think are questionable are 
+```{r}
+allDatasets %>% 
+  filter(datasetid %in% c(1947, 2, 4438, 5666)) %>% 
+  select(name) %>% 
+  knitr::kable()
+```
+and were not downloaded for the moment. 
+
+All other datasets were judged to be interesting enough for this analysis and were downloaded completely. 
+
+
+
+## Extraction all relevant dataset
+
+Extracting all relevant datasets will result in more observations, but part of the observations may be of non-phytoplankton organisms. After cleaning this set from non-phytoplankton, it is expected that all phytoplankton observations remain, also those which at the moment do not have the trait attribute "phytoplankton".
+
+
+```{r, message=F, warning=F}
+
+all2Data <- read_delim(file.path(dataDir, "all2Data.csv"), delim = ";")
+```
+
+This query resulted in `r length(all2Data$id)` observations
+
+```{r, message=F, warning=F}
+regionN <- all2Data %>%
+  group_by(mrgid) %>% summarize(n = n()) %>% ungroup() %>%
+  mutate(mrgid = as.numeric(mrgid))
+
+regions %>% right_join(regionN, by = c(mrgid = "mrgid")) %>%
+  ggplot() +
+  geom_sf(aes(fill = log10(n))) +
+  scale_fill_distiller(direction = 1)
+
+```
+
+
+
+```{r cleanup}
+rm(all2Data)
+```
+
+
+
