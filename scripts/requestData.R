@@ -1,14 +1,14 @@
 require(sf)
 require(tidyverse)
-downloadDir <- "data/raw_data"
-dataDir <- "data/derived_data"
+downloadDir <- "../data/raw_data"
+dataDir <- "../data/derived_data"
 
 # read geographic layers for plotting
 layerurl <- "http://geo.vliz.be/geoserver/MarineRegions/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=MarineRegions:eez_iho_union_v2&outputFormat=application/json"
 regions <- sf::st_read(layerurl)
 
 # read selected geographic layers for downloading
-roi <- read_delim("data/derived_data/regions.csv", delim = ";")
+roi <- read_delim("../data/derived_data/regions.csv", delim = ";")
 # check by plotting
 regions %>% filter(mrgid %in% roi$mrgid) %>%
   ggplot() +
@@ -17,7 +17,7 @@ regions %>% filter(mrgid %in% roi$mrgid) %>%
   theme(axis.title = element_blank(),
         axis.text = element_blank(),
         axis.ticks = element_blank())
-ggsave("data/derived_data/regionsOfInterest.png", width = 3, height =  4, )
+ggsave("../data/derived_data/regionsOfInterest.png", width = 3, height =  4, )
 
 #== download data by geographic location and trait =====================================
 
@@ -33,7 +33,7 @@ attributeID3 <- NULL
 for(ii in 1:length(roi$mrgid)){
   mrgid <- roi$mrgid[ii]
   print(paste("downloadingdata for", roi$marregion[ii]))
-  downloadURL <- paste0("http://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+%28%28observationdate+BETWEEN+%27", beginDate, "%27+AND+%27", endDate, "%27+%29%29+AND+aphiaid+IN+%28+SELECT+aphiaid+FROM+eurobis.taxa_attributes+WHERE+selectid+IN+%28%27", attributeID1, "%27%5C%2C%27", attributeID2, "%27%29%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
+  downloadURL <- paste0("http://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+%28%28observationdate+BETWEEN+%27", beginDate, "%27+AND+%27", endDate, "%27+%29%29+AND+aphiaid+IN+%28+SELECT+aphiaid+FROM+eurobis.taxa_attributes+WHERE+selectid+IN+%28%27", attributeID1, "%27%5C%2C%27", attributeID2, "%27%29%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Cspecificepithet%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
   # downloadURL <- paste0("http://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_basic&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+%28%28observationdate+BETWEEN+%27", beginDate, "%27+AND+%27", endDate, "%27+%29%29+AND+aphiaid+IN+%28+SELECT+aphiaid+FROM+eurobis.taxa_attributes+WHERE+selectid+IN+%28%27", attributeID1, "%27%5C%2C%27", attributeID2, "%27%5C%2C%27", attributeID3, "%27%29%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted&outputFormat=csv")
   filename = paste0("region", roi$mrgid[ii], ".csv")
   data <- read_csv(downloadURL) 
@@ -173,7 +173,7 @@ for(ii in 1:length(roi$mrgid)){
     datasetid <- getDatasets$datasetid[jj]
     mrgid <- roi$mrgid[ii]
     print(paste("downloadingdata for", roi$marregion[ii], "and", getDatasets$datasetid[jj]))
-    downloadURL <- paste0("https://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+datasetid+IN+(", datasetid, ");context%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
+    downloadURL <- paste0("https://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+datasetid+IN+(", datasetid, ");context%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Cspecificepithet%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
     data <- read_csv(downloadURL, guess_max = 100000) 
     filename = paste0("region", roi$mrgid[ii], "_datasetid", datasetid,  ".csv")
     if(nrow(data) != 0){

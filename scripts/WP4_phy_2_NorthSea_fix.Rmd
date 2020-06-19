@@ -11,7 +11,6 @@ output:
 # Global options
 
 ```{r global_options, include=FALSE}
-rm(list = ls())
 
 knitr::opts_chunk$set(fig.width=12, fig.height = 10, fig.path = 'Figs/',
                       echo = FALSE, warning = FALSE, message = FALSE)
@@ -43,14 +42,14 @@ all_spec <- all2Data %>%
 sum(is.na(all2Data$phylum))
 # Use phyla that are associated with phytoplankton
 non_phy_data <- all2Data %>%
-  filter(!phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa", "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa"))
+  filter(!phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa", "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa", NA))
 
 # Distinct species in phy_data
 non_phy_spec <- non_phy_data %>%
   distinct(scientificnameaccepted, .keep_all = TRUE) %>%
   select(scientificnameaccepted, phylum, scientificnameauthorship)
 
-write.csv(non_phy_spec, file.path("../data/derived_data/non_phy_spec.csv"), row.names = FALSE)
+#write.csv(non_phy_spec, file.path("../data/derived_data/non_phy_spec.csv"), row.names = FALSE)
 
 # Use phyla that are associated with phytoplankton
 phy_data <- all2Data %>%
@@ -86,46 +85,28 @@ clean_phy <- phy_data %>%
 
 ```
 
-# Next step is to repair the datasets that don't have the correct date format
-
-```{r manipulating of datasets 2}
-
-# #############################################################################
-# Here we fix the date format using lubridate.
-# #############################################################################
-
-# Wrong format, first do a check overall
-# Make sure the dates in eventDate are in the correct format
-#clean_phy <- clean_phy %>% 
-#  mutate(date = trimws(eventDate)) %>%
-#  mutate( date = 
-#    case_when(
-#      grepl("T", eventDate) ~ lubridate::as_date(sub(pattern = "\\T.*", "", eventDate)), # dates with "T"
-#      grepl("^\\d{4}-\\d{2}-\\d{2}$", eventDate) ~ as.Date(eventDate, format = "%Y-%m-%d"),   # dates format yyyy-mm-dd
-#      grepl("(^\\d{4}\\-\\d{2}){1}$", eventDate) ~ lubridate::ymd(paste(eventDate, "01")),   # dates format yyyy-mm
-#      grepl("^\\d{4}$", eventDate) ~ lubridate::ymd(paste(eventDate, "01", "01"))    # dates format yyyy 
-#    )
-#  )
-
-```
-
 ## Here we do some manual repairs on datasets that are still not usable. 
 
 ```{r fix a number of datasets}
 
 # #############################################################################
 # Here we do some manual repairs on datasets that are still not usable, we fix:
-# 1. We merge datasets that belong to the same dataset but are cut in different years (e.g. Sylt-Romo)
-# 2. The datasets that miss an eventID need to be fixed. We do this by uniting location and date
-# 3. Change abbreviation of datasets because they are too long or confussing 
-# 4. Fill the occurrenceStatus to present since it was located in the occurrenceRemarks (other column)
-# Also the objects that miss an eventID or date, will be removed (see the end of code-chunk)
-# And duplicates that occurred due to two sample moments on one day
+# Fill in missing eventID's with date and location 
+# Extract the aphiaid from aphiaidaccepted
+# Duplicates that occurred due to two sample moments on one day
 # #############################################################################
 fix_phy <- clean_phy %>%
-  distinct(aphiaidaccepted, datasetid, datecollected, decimallatitude, decimallongitude, .keep_all = TRUE) %>%
-  mutate(month = lubridate::month(datecollected)) %>%
-  mutate(year = lubridate::year(datecollected))
+  distinct(aphiaidaccepted, datasetid, datecollected, decimallatitude, decimallongitude, .keep_all = TRUE) %>%       # Select distinct objects
+  mutate(month = lubridate::month(datecollected)) %>%                                                                # Create column with months
+  mutate(year = lubridate::year(datecollected)) %>%                                                                  # Create column with years
+  mutate(datasetid_new = str_replace(datasetID, ".csv", "")) %>%                                                     # Datasetid has ".csv" at end
+  select(-datasetID, -datasetid) %>%                                   
+  mutate(datasetID = as.numeric(datasetid_new)) %>%                                                                  # We remove this here
+  unite(eventID_2, c("datecollected", "decimallatitude", "decimallongitude"), sep = "-", remove = FALSE) %>%         # Make eventID were not present
+  mutate(eventIDnew = ifelse(is.na(eventid), eventID_2, eventid)) %>%
+  mutate(aphiaid_new = str_extract(aphiaidaccepted, "[^http://marinespecies.org/aphia.php?p=taxdetails&id=]+$")) %>% # Remove website from aphiaid
+  select(-eventid, -eventID_2, -coordinateuncertaintyinmeters, -aphiaidaccepted, -aphiaid, -datasetid_new) %>%       # Remove columns not necessary
+  rename(eventid = eventIDnew, aphiaid = aphiaid_new)                                                                # Rename these columns created
 
 # Save file
 save(fix_phy, file = "../data/raw_data/fix_phy.Rdata")

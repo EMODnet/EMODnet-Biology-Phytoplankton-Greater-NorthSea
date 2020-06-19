@@ -29,11 +29,11 @@ require(rworldxtra)
 #source("../scripts/WP4_phy_functions_needed.R")
 
 # Load phy data set from working directory
-load(file.path("../data/raw_data/phy_sp.Rdata"))
+#load(file.path("../data/raw_data/phy_sp.Rdata"))
      
 # Remove the duplicates that have the same location and time of sampling (between different datasets)
 phy_sp <- phy_sp %>%
-  select(aphiaidaccepted, scientificnameaccepted, datecollected, datasetID, datasetid, mrgid, eventid, month, year, season, xUTM, yUTM, present) 
+  select(aphiaid, scientificnameaccepted, datecollected, datasetID, datasetid, mrgid, eventid, month, year, season, xUTM, yUTM, occurrence) 
 
 ```
 
@@ -123,7 +123,7 @@ completeZeros_sp <- function(df, species, year){
     ungroup() %>%
     dplyr::filter(scientificnameaccepted == species) %>%
     distinct(datasetID) %>% unlist() %>% unname()
-  phy_c <- phy_sp %>%
+  phy_c <- df %>%
     group_by(datasetID, year) %>%
     tidyr::complete(nesting(aphiaidaccepted, scientificnameaccepted),         # these will be completed, with their occurrence
                     nesting(datecollected, xUTM, yUTM, season),   # Combinations of these parameters are to be found
@@ -134,6 +134,21 @@ completeZeros_sp <- function(df, species, year){
     ungroup()
 }
 
+selectedDatasets <- phy_sp %>% 
+    ungroup() %>%
+    dplyr::filter(scientificnameaccepted == "Acanthostomella norvegica") %>%
+    distinct(datasetID) %>% unlist() %>% unname()
+
+phy_c <- phy_sp %>%
+    group_by(datasetID, year) %>%
+    tidyr::complete(nesting(aphiaid, scientificnameaccepted),         # these will be completed, with their occurrence
+                    nesting(datecollected, xUTM, yUTM, season),   # Combinations of these parameters are to be found
+                    fill = list(occurrence = 0)) %>% 
+    ungroup() %>%
+    unite(date_xUTM_yUTM, datecollected, xUTM, yUTM, remove = FALSE) %>%
+    filter(scientificnameaccepted == "Acanthostomella norvegica") %>%
+    ungroup()
+
 phy_n <- phy_sp %>%
   group_by(scientificnameaccepted) %>%
   summarise(phy_n = n())
@@ -142,12 +157,12 @@ phy_c <- completeZeros_sp(phy_sp, params$targetSpecies, params$begin:params$end)
 
 # This df contains duplicates from different datasets that have the same location and time, which seems unlikely
 dup_zero <- phy_c %>% 
-  arrange(aphiaidaccepted, datecollected, xUTM, yUTM, present, season) %>%
+  arrange(aphiaid, datecollected, xUTM, yUTM, occurrence, season) %>%
   select(-datasetID) %>%
   duplicated %>% which
 # Create the df with duplicates
 dbs_zero <- phy_c %>% 
-  arrange(aphiaidaccepted, datecollected, xUTM, yUTM, present, season) %>%
+  arrange(aphiaid, datecollected, xUTM, yUTM, occurrence, season) %>%
   ungroup() %>%
   slice(sort(c(dup_zero, dup_zero-1))) 
 
@@ -166,7 +181,7 @@ dbs_zero <- phy_c %>%
 
 # Here we remove the duplicates that have the same location and time in different datasets 
 phy_c <- phy_c %>%
-  distinct(aphiaidaccepted, scientificnameaccepted, datecollected, xUTM, yUTM, year, season, present, .keep_all = TRUE) 
+  distinct(aphiaid, scientificnameaccepted, datecollected, xUTM, yUTM, year, season, occurrence, .keep_all = TRUE) 
 
 # #############################################################################
 # Include the gridnr in the dataframe

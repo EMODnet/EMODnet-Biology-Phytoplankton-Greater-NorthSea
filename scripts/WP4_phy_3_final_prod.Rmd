@@ -15,6 +15,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 
 require(tidyverse)
+require(sf)
 ```
 
 ## We now have the dataset we want to work with. These datasets, however, some things still have to be adjusted. 
@@ -27,9 +28,7 @@ require(tidyverse)
 load(file.path("../data/raw_data/fix_phy.Rdata"))
 
 # 1. Seasons have to be added so that we can use them later. 
-# 2. Winter years were added. This is basically the same as the normal year, except for december in which we add a year
-#    This can be used to group winter months together. E.g. dec 2011, jan 2012 and feb 2012 are all in one winter season
-# 3. Occurrence has to numerical
+# 2. Occurrence has to numerical
 
 temp_phy <- fix_phy %>%
   mutate(season = case_when(
@@ -38,10 +37,10 @@ temp_phy <- fix_phy %>%
     month %in% 9:11 ~ "autumn",
     month %in% 1:2 ~ "winter",
     month %in% 12 ~ "winter")) %>%                       # 1. Seasons were added
-  mutate(present = "1") 
+  mutate(occurrence = "1")                               # 2. Occurrence was added as numerical
 
 # #############################################################################
-# 4. Coordinates have to be changed (from WGS84 to UTM)
+# 3. Coordinates have to be changed (from WGS84 to UTM)
 phy <- temp_phy %>% 
   st_as_sf(coords = c('decimallongitude', 'decimallatitude'), crs = 4326) %>%  # This was the old coordinate code
   st_transform(crs = 32631) %>%                                                # This is the new coordinate code used
@@ -61,14 +60,14 @@ phy <- temp_phy %>%
 
 # Species datasets (for which we drop the genus levels only)
 phy_sp <- phy %>%
-  distinct(aphiaidaccepted, scientificnameaccepted, datecollected, eventid, xUTM, yUTM, year,
-         season, present, .keep_all = TRUE) # Here we remove the duplicates that originated from two datasets (phy_southern_ns_71_73 and 
-# phy_southern_ns_72) that seem to have duplicates
+  distinct(datasetID, aphiaid, scientificnameaccepted, datecollected, eventid, xUTM, yUTM, year,
+         season, .keep_all = TRUE) 
+  
 
 # Genus datasets
 phy_gen <- phy %>%
-   distinct(genus, abbr, date, xUTM, yUTM, .keep_all = TRUE) # Here we remove the duplicates that originated due to focussing on genera alone
-# This is something to keep in mind, when plotting the maps and figures.
+  # filter(!specificithet %in% NA) %>%
+   distinct(datasetID, aphiaid, genus, datecollected, eventid, xUTM, yUTM, year, season, .keep_all = TRUE) 
   
 # #############################################################################
 # Save phy files
