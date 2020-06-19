@@ -1,14 +1,19 @@
+
 require(sf)
 require(tidyverse)
+require(httr)
+
 downloadDir <- "data/raw_data"
 dataDir <- "data/derived_data"
+
+# read selected geographic layers for downloading
+roi <- read_delim("data/derived_data/regions.csv", delim = ";")
 
 # read geographic layers for plotting
 layerurl <- "http://geo.vliz.be/geoserver/MarineRegions/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=MarineRegions:eez_iho_union_v2&outputFormat=application/json"
 regions <- sf::st_read(layerurl)
 
-# read selected geographic layers for downloading
-roi <- read_delim("data/derived_data/regions.csv", delim = ";")
+
 # check by plotting
 regions %>% filter(mrgid %in% roi$mrgid) %>%
   ggplot() +
@@ -19,15 +24,17 @@ regions %>% filter(mrgid %in% roi$mrgid) %>%
         axis.ticks = element_blank())
 ggsave("data/derived_data/regionsOfInterest.png", width = 3, height =  4, )
 
+
+
 #== download data by geographic location and trait =====================================
 
 beginDate<- "1995-01-01"
 endDate <- "2020-05-31"
 
+# both capitalized and non-capitalized occur in traits list on download tool.
+# not sure if wfs-request is case-sensitive, try both
 attributeID1 <- "phytoplankton"
 attributeID2 <- "Phytoplankton"
-attributeID3 <- NULL
-
 
 # Full occurrence (selected columns)
 for(ii in 1:length(roi$mrgid)){
@@ -40,6 +47,7 @@ for(ii in 1:length(roi$mrgid)){
   write_delim(data, file.path(downloadDir, "byTrait", filename), delim = ";")
 }
 
+# combine all downloaded files from one directory
 filelist <- list.files("data/raw_data/byTrait")
 allDataExtra <- lapply(filelist, function(x) 
   read_delim(file.path("data", "raw_data/byTrait", x), 
@@ -52,7 +60,7 @@ allDataExtra <- lapply(filelist, function(x)
 write_delim(allDataExtra, file.path(dataDir, "allDataExtra.csv"), delim = ";")
 
 
-#=== from downloaded data ===========================
+#=== start from combined and saved data ===========================
 #
 allDataExtra <- read_delim(file.path(dataDir, "allDataExtra.csv"), delim = ";")
 
@@ -89,6 +97,7 @@ write_delim(datasetids, file.path(dataDir, "allDatasets.csv"), delim = ";")
  
 #== manual inspection of dataset names =====================================
 
+datasetids <- read_delim(file.path(dataDir, "allDatasets.csv"), delim = ";")
 paste(datasetids$datasetid, datasetids$name)
 
 #  ok     [1] "785 Continuous Plankton Recorder (Phytoplankton)"                                                                                           
@@ -121,40 +130,51 @@ paste(datasetids$datasetid, datasetids$name)
 #  not ok [28] "4687 LifeWatch observatory data: zooplankton observations in the Belgian Part of the North Sea"
 #  ok     [29] "5451 Semi-quantitive microplankton analysis (Sylt Roads Time Series) in the Wadden Sea off List, Sylt, North Sea"  
 # 
-# These we are not certain of
+
+
+#=== uncertain datasets inspection ======================
+
 doubtdatasets <- c(1947, 2, 4438, 5666)
-# getdoubtDatasets <- datasetids %>%
-#   filter(datasetid %in% doubtdatasets)
-# 
-# beginDate<- "1995-01-01"
-# endDate <- "2020-05-31"
-# 
-# for(ii in 1:length(roi$mrgid)){
-#   for(jj in 1:length(getdoubtDatasets$datasetid)){
-#     datasetid <- getdoubtDatasets$datasetid[jj]
-#     mrgid <- roi$mrgid[ii]
-#     print(paste("downloadingdata for", roi$marregion[ii], "and", getdoubtDatasets$datasetid[jj]))
-#     downloadURL <- paste0("https://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_basic&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+datasetid+IN+(", datasetid, ");context%3A0100;&outputFormat=csv")
-#     data <- read_csv(downloadURL) 
-#     filename = paste0("region", roi$mrgid[ii], "datasetid", datasetid,  ".csv")
-#     if(nrow(data) != 0){
-#       write_delim(data, file.path(downloadDir, "byDataset2", filename), delim = ";")
-#     }
-#   }
-# }
-# 
-# filelist <- list.files("data/raw_data/byDataset2")
-# all2DoubtData <- lapply(filelist, function(x) 
-#   read_delim(file.path("data", "raw_data/byDataset2", x), 
-#              delim = ";", 
-#              col_types = "cccTnnlccc")) %>%
-#   set_names(sub(".csv", "", filelist)) %>%
-#   bind_rows(.id = "mrgid") %>%
-#   mutate(mrgid = sub("region", "", mrgid))
-# 
-# doubt_datasetids <- all2DoubtData %>% distinct(datasetid) %>% 
-#   mutate(datasetid = sub('http://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=', "", datasetid, fixed = T))
-# 
+getdoubtDatasets <- datasetids %>%
+  filter(datasetid %in% doubtdatasets)
+
+beginDate<- "1995-01-01"
+endDate <- "2020-05-31"
+
+for(ii in 1:length(roi$mrgid)){
+  for(jj in 1:length(getdoubtDatasets$datasetid)){
+    datasetid <- getdoubtDatasets$datasetid[jj]
+    mrgid <- roi$mrgid[ii]
+    print(paste("downloadingdata for", roi$marregion[ii], "and", getdoubtDatasets$datasetid[jj]))
+    downloadURL <- paste0("https://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+datasetid+IN+(", datasetid, ");context%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
+    # data <- read_csv(downloadURL, guess_max = 100000, col_types = "ccccccTnnnccccccccccccccc") 
+    data <- RETRY("GET", url = downloadURL, times = 3) %>%  # max retry attempts
+      content(., "parsed")
+    filename = paste0("region", roi$mrgid[ii], "datasetid", datasetid,  ".csv")
+    if(nrow(data) != 0){
+      write_delim(data, file.path(downloadDir, "byDataset2", filename), delim = ";")
+    }
+  }
+}
+
+filelist <- list.files("data/raw_data/byDataset2")
+all2DoubtData <- lapply(filelist, function(x) 
+  read_delim(file.path("data", "raw_data/byDataset2", x), 
+             delim = ";", 
+             col_types = "ccccccTnnnccccccccccccccc"
+  )
+) %>%
+  set_names(filelist) %>%
+  bind_rows(.id = "fileID") %>%
+  separate(fileID, c("mrgid", "datasetID"), "_") %>%
+  mutate(mrgid = sub("[[:alpha:]]+", "", mrgid)) %>%
+  mutate(datasetID = sub("[[:alpha:]]+", "", datasetID))
+# mutate(mrgid = sub("region", "", mrgid))
+
+
+doubt_datasetids <- all2DoubtData %>% distinct(datasetid) %>%
+  mutate(datasetid = sub('http://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=', "", datasetid, fixed = T))
+
 # write_delim(all2DoubtData, file.path(dataDir, "all2DoubtData.csv"), delim = ";")
 # 
 # doubt_species <- all2DoubtData %>% distinct(scientificnameaccepted, .keep_all = TRUE) %>% select(scientificnameaccepted, phylum, datasetid) #  4966 species
@@ -185,9 +205,18 @@ for(ii in 1:length(roi$mrgid)){
   }
 }
 
+#===== extra datasets added ================================================
 # Extra: These datasets fall outside the marine regions!!!! Just..
 # See https://www.emodnet-biology.eu/portal/index.php?dasid=5449
-syltdatasetids <- c(5449, 5486:5511) 
+syltdatasetids <- c(5449, 5486:5511)
+
+extradatasets <- tibble(
+  datasetid = syltdatasetids,
+  name = sapply(syltdatasetids, getDatasetName, simplify = T),
+  url = paste0("https://www.vliz.be/en/imis?module=dataset&dasid=", syltdatasetids)
+)
+
+write_delim(extradatasets, file.path(dataDir, "extraDatasets.csv"), delim = ";")
 
 for(jj in 1:length(syltdatasetids)){
   datasetid <- syltdatasetids[jj]
@@ -201,7 +230,7 @@ for(jj in 1:length(syltdatasetids)){
 }
 
 
-
+#== combine all downloaded data =======================================
 filelist <- list.files("data/raw_data/byDataset")
 all2Data <- lapply(filelist, function(x) 
   read_delim(file.path("data", "raw_data/byDataset", x), 
@@ -217,6 +246,8 @@ all2Data <- lapply(filelist, function(x)
   # mutate(mrgid = sub("region", "", mrgid))
 
 write_delim(all2Data, file.path(dataDir, "all2Data.csv"), delim = ";")
+
+
 
 all2Data %>% distinct(scientificnameaccepted) %>% dim() #  4805
 all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 94329
