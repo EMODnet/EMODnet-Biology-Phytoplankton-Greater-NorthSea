@@ -38,7 +38,9 @@ temp_phy <- fix_phy %>%
     month %in% 9:11 ~ "autumn",
     month %in% 1:2 ~ "winter",
     month %in% 12 ~ "winter")) %>%                       # 1. Seasons were added
-  mutate(present = "1") 
+  mutate(occurrence = "1") %>%
+  separate(scientificnameaccepted, c("genus_new", "species"), " ", remove = FALSE) %>%
+  select(-genus_new)
 
 # #############################################################################
 # 4. Coordinates have to be changed (from WGS84 to UTM)
@@ -61,13 +63,12 @@ phy <- temp_phy %>%
 
 # Species datasets (for which we drop the genus levels only)
 phy_sp <- phy %>%
-  distinct(aphiaidaccepted, scientificnameaccepted, datecollected, eventid, xUTM, yUTM, year,
-         season, present, .keep_all = TRUE) # Here we remove the duplicates that originated from two datasets (phy_southern_ns_71_73 and 
-# phy_southern_ns_72) that seem to have duplicates
+  filter(!species %in% NA) %>%
+  distinct(aphiaid, datasetID, scientificnameaccepted, datecollected, eventid, xUTM, yUTM, year,season, occurrence, .keep_all = TRUE) 
 
 # Genus datasets
 phy_gen <- phy %>%
-   distinct(genus, abbr, date, xUTM, yUTM, .keep_all = TRUE) # Here we remove the duplicates that originated due to focussing on genera alone
+   distinct(genus, datasetID, datecollected, xUTM, yUTM, .keep_all = TRUE) # Here we remove the duplicates that originated due to focussing on genera alone
 # This is something to keep in mind, when plotting the maps and figures.
   
 # #############################################################################
@@ -76,4 +77,3 @@ save(phy_sp, file = "../data/raw_data/phy_sp.Rdata")
 save(phy_gen, file = "../data/raw_data/phy_gen.Rdata")
 
 ```
-

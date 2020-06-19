@@ -63,7 +63,7 @@ write.csv(phy_spec, file.path("../data/derived_data/phy_spec.csv"), row.names = 
 
 
 # Exclude the species that are not phytoplankton, they are summed in this list. This is specific
-phy_corrected <- read_delim(file.path("../data/derived_data/phy_spec_corrected.csv"), delim = ";")
+phy_corrected <- read_delim(file.path("../data/derived_data/phy_spec_corrected_new.csv"), delim = ";")
 
 # Select phytoplankton only in this file
 phy_spec_used <- phy_corrected %>%
@@ -77,7 +77,7 @@ phy_spec_used <- phy_corrected %>%
 # #############################################################################
 clean_phy <- phy_data %>% 
   filter(scientificnameaccepted %in% phy_spec_used$scientificnameaccepted) %>%    # Exclude non-phytoplankton
-  distinct(aphiaid, datasetID, datecollected, decimallongitude, decimallatitude, .keep_all = TRUE)# Filter out the duplicates
+  distinct(aphiaid, datasetID, datecollected, decimallongitude, decimallatitude, .keep_all = TRUE) # Filter out the duplicates
 
 
 ```
@@ -100,8 +100,9 @@ fix_phy <- clean_phy %>%
   unite(eventID_2, c("datecollected", "decimallatitude", "decimallongitude"), sep = "-", remove = FALSE) %>%         # Make eventID were not present
   mutate(eventIDnew = ifelse(is.na(eventid), eventID_2, eventid)) %>%
   mutate(aphiaid_new = str_extract(aphiaidaccepted, "[^http://marinespecies.org/aphia.php?p=taxdetails&id=]+$")) %>% # Remove website from aphiaid
-  select(-eventid, -eventID_2, -coordinateuncertaintyinmeters, -aphiaidaccepted, -aphiaid) %>%       # Remove columns not necessary
+  select(-eventid, -eventID_2, -coordinateuncertaintyinmeters, -aphiaidaccepted, -aphiaid) %>%                       # Remove columns not necessary
   rename(eventid = eventIDnew, aphiaid = aphiaid_new)                                                                # Rename these columns created
+
 
 # Save file
 save(fix_phy, file = "../data/raw_data/fix_phy.Rdata")
