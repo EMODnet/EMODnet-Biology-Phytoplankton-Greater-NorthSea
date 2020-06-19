@@ -10,7 +10,7 @@ This product then is also used for interpolated maps, using the DIVA software.
 
 The aim is to cover the Greater North Sea. Subareas from the eez-iho layer in marineregions.org were selected as in the map below. Kattegat and Skagerrak were excluded for the moment, but could be added in a later stage. 
 
-![Map of regions](data/derived_data/regionsOfInterest.png)
+![Map of regions](data/derived_data/regionsOfInterest.png | width=100)
 
 ## Temporal coverage
 
