@@ -50,6 +50,23 @@ for(ii in 1:length(roi$mrgid)){
   write_delim(data, file.path(downloadDir, "byTrait", filename), delim = ";")
 }
 
+
+# Extra data that fall outside marine regions
+# Sylt data sets (one per year)
+syltdatasetids <- c(5449, 5486:5511)
+for(ii in 1:length(syltdatasetids)){
+  datasetid = syltdatasetids[ii]
+  print(paste("downloadingdata for", "Sylt dataset ", datasetid))
+  downloadURL <- paste0("http://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_basic&resultType=results&viewParams=where%3Adatasetid+IN+%28", datasetid, "%29+AND+%28%28observationdate+BETWEEN+%27", beginDate, "%27+AND+%27", endDate, "%27+%29%29+AND+aphiaid+IN+%28+SELECT+aphiaid+FROM+eurobis.taxa_attributes+WHERE+selectid+IN+%28%27Phytoplankton%27%5C%2C%27phytoplankton%27%29%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted&outputFormat=csv")
+  # downloadURL <- paste0("http://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_basic&resultType=results&viewParams=where%3A%28%28up.geoobjectsids+%26%26+ARRAY%5B", mrgid, "%5D%29%29+AND+%28%28observationdate+BETWEEN+%27", beginDate, "%27+AND+%27", endDate, "%27+%29%29+AND+aphiaid+IN+%28+SELECT+aphiaid+FROM+eurobis.taxa_attributes+WHERE+selectid+IN+%28%27", attributeID1, "%27%5C%2C%27", attributeID2, "%27%5C%2C%27", attributeID3, "%27%29%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted&outputFormat=csv")
+  filename = paste0("Sylt", "25231", ".csv")
+  data <- read_csv(downloadURL) 
+  write_delim(data, file.path(downloadDir, "byTrait", filename), delim = ";")
+}
+
+
+
+
 # combine all downloaded files from one directory
 filelist <- list.files("data/raw_data/byTrait") 
 allDataTrait <- lapply(filelist, function(x) 
@@ -61,32 +78,6 @@ allDataTrait <- lapply(filelist, function(x)
   mutate(mrgid = sub("region", "", mrgid))
 
 write_delim(allDataTrait, file.path(dataDir, "allDataTrait.csv"), delim = ";")
-
-# Extra: These datasets fall outside the marine regions!!!! Just..
-# See https://www.emodnet-biology.eu/portal/index.php?dasid=5449
-syltdatasetids <- c(5449, 5486:5511) 
-
-for(jj in 1:length(syltdatasetids)){
-  datasetid <- syltdatasetids[jj]
-  print(paste("downloading data for dataset nr: ", datasetid))
-  #downloadURL <- paste0("http://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3Adatasetid+IN+%28", datasetid, " %5C%29%29+AND+%28%28observationdate+BETWEEN+%27", beginDate, "%27+AND+%27", endDate, "%27+%29%29+AND+aphiaid+IN+%28+SELECT+aphiaid+FROM+eurobis.taxa_attributes+WHERE+selectid+IN+%28%27", attributeID1, "%27%5C%2C%27", attributeID2, "%27%29%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Cspecificepithet%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")  
-  #downloadURL <- paste0("http://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3Adatasetid+IN+%285449%5C%2C5486%5C%2C5487%5C%2C5488%5C%2C5489%5C%2C5490%5C%2C5491%5C%2C5492%5C%2C5493%5C%2C5494%5C%2C5495%5C%2C5496%5C%2C5497%5C%2C5498%5C%2C5499%5C%2C5500%5C%2C5501%5C%2C5502%5C%2C5503%5C%2C5504%5C%2C5505%5C%2C5506%5C%2C5507%5C%2C5508%5C%2C5509%5C%2C5510%5C%2C5511%29+AND+%28%28observationdate+BETWEEN+%27", beginDate, "%27+AND+%27", endDate, "%27+%29%29+AND+aphiaid+IN+%28+SELECT+aphiaid+FROM+eurobis.taxa_attributes+WHERE+selectid+IN+%28%27", attributeID1, "%27%5C%2C%27", attributeID2, "%27%29%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Cspecificepithet%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
-  downloadURL <- paste0("http://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3Adatasetid+IN+%28", datasetid, " %29+AND+%28%28observationdate+BETWEEN+%27", beginDate, "%27+AND+%27", endDate, "%27+%29%29+AND+aphiaid+IN+%28+SELECT+aphiaid+FROM+eurobis.taxa_attributes+WHERE+selectid+IN+%28%27", attributeID1, "%27%5C%2C%27", attributeID2, "%27%29%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Cspecificepithet%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
-    filename = paste0("region25231_sylt_", syltdatasetids[jj], ".csv")
-  data <- read_csv(downloadURL) 
-  write_delim(data, file.path(downloadDir, "byTraitSylt", filename), delim = ";")
-}
-  
-filelistSylt <- list.files("data/raw_data/byTraitSylt")
-allDataTraitSylt <- lapply(filelistSylt, function(x) 
-  read_delim(file.path("data", "raw_data/byTraitSylt", x), 
-             delim = ";", 
-             col_types = "ccccccTnnlccccccccccccccc")) %>%
-  set_names(sub(".csv", "", filelistSylt)) %>%
-  bind_rows(.id = "mrgid") %>%
-  mutate(mrgid = sub("region", "", mrgid))
-
-write_delim(allDataTraitSylt, file.path(dataDir, "allDataTraitSylt.csv"), delim = ";")
 
 
 #=== start from combined and saved data ===========================
@@ -292,7 +283,8 @@ write_delim(extradatasets, file.path(dataDir, "extraDatasets.csv"), delim = ";")
 for(jj in 1:length(syltdatasetids)){
   datasetid <- syltdatasetids[jj]
   print(paste("downloading data for dataset nr: ", datasetid))
-  downloadURL <- paste0("https://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3Adatasetid+IN+%28", datasetid, "%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Cspecificepithet%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
+  # downloadURL <- paste0("https://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3Adatasetid+IN+%28", datasetid, "%29%3Bcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Cspecificepithet%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
+  downloadURL <- paste0("http://geo.vliz.be/geoserver/wfs/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=Dataportal%3Aeurobis-obisenv_full&resultType=results&viewParams=where%3Adatasetid+IN+%28", datasetid, "%29+AND+%28%28observationdate+BETWEEN+%271995-01-01%27+AND+%272020-06-30%27+%29%29%3Bcontextcontext%3A0100&propertyName=datasetid%2Cdatecollected%2Cdecimallatitude%2Cdecimallongitude%2Ccoordinateuncertaintyinmeters%2Cscientificname%2Caphiaid%2Cscientificnameaccepted%2Cinstitutioncode%2Ccollectioncode%2Coccurrenceid%2Cscientificnameauthorship%2Cscientificnameid%2Ckingdom%2Cphylum%2Cclass%2Corder%2Cfamily%2Cgenus%2Csubgenus%2Cspecificepithet%2Caphiaidaccepted%2Cbasisofrecord%2Ceventid&outputFormat=csv")
   data <- read_csv(downloadURL, guess_max = 100000) 
   filename = paste0("Sylt25231_", "datasetid", datasetid,  ".csv")
   if(nrow(data) != 0){
