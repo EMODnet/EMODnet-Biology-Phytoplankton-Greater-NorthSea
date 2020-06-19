@@ -7,7 +7,7 @@ output: html_document
 ---
 
 ```{css, echo = F}
-.box {
+.blackbox {
   padding: 1em;
   background: white;
   color: blue;
@@ -23,12 +23,11 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, fig.align="center")
 require(sf)
 require(tidyverse)
-dataDir <- "../data/derived_data"
 ```
 
 
 
-:::: {.box data-latex=""}
+:::: {.blackbox data-latex=""}
 ::: {.center data-latex=""}
 Objectives
 :::
@@ -40,17 +39,10 @@ Objectives
 1. Produce a high quality data product containing both occurence and absence of phytoplanton in Greater North Sea
 ::::
 
-# Introduction
 
-## Documentation
 
-Github project: https://github.com/wstolte/EMODnet-Biology-Phytoplankton-NorthSea
 
 # Data extraction
-
-## Temporal scale
-
-Data from 1995 until now are considered for the current product.
 
 ## Geographical scale
 
@@ -66,7 +58,6 @@ regions %>% ggplot() +
         axis.ticks = element_blank())
 ```
 
-## Strategy
 
 For each of these subregions, data extraction was done in a two-step approach. 
 
@@ -75,11 +66,10 @@ For each of these subregions, data extraction was done in a two-step approach.
 
 The reason for these two steps is that not all phytoplankton have been given traits yet. Potentially, many species would not been selected in the first query
 
-While doing this, at least one dataset that contains phytoplankton was not selected. This is the Sylt-Romo dataset for phytoplankton. This datawset appeared to be archived, and could not be downloaded via WFS. 
-
 ## Extraction by trait
 
 ```{r readDatasetTable, message=F}
+dataDir <- "../data/derived_data"
 allDatasets <- read_delim(file.path(dataDir, "allDatasets.csv"), delim = ";", )
 allData <- read_delim(file.path(dataDir, "allDataExtra.csv"), delim = ";")
 ```
@@ -94,10 +84,9 @@ regionN <- allData %>%
   mutate(mrgid = as.numeric(mrgid))
 
 regions %>% right_join(regionN, by = c(mrgid = "mrgid")) %>%
-  mutate(n_km2 = 1e6*n/area_m2) %>%
   ggplot() +
-  geom_sf(aes(fill = n_km2)) +
-  scale_fill_viridis_c(limits = c(0.2, 1))
+  geom_sf(aes(fill = log10(n))) +
+  scale_fill_distiller(direction = 1)
 
 ```
 
@@ -144,7 +133,7 @@ All other datasets were judged to be interesting enough for this analysis and we
 
 
 
-## Extraction of complete relevant datasets
+## Extraction all relevant dataset
 
 Extracting all relevant datasets will result in more observations, but part of the observations may be of non-phytoplankton organisms. After cleaning this set from non-phytoplankton, it is expected that all phytoplankton observations remain, also those which at the moment do not have the trait attribute "phytoplankton".
 
@@ -162,34 +151,17 @@ regionN <- all2Data %>%
   mutate(mrgid = as.numeric(mrgid))
 
 regions %>% right_join(regionN, by = c(mrgid = "mrgid")) %>%
-  mutate(n_km2 = 1e6*n/area_m2) %>%
   ggplot() +
-  geom_sf(aes(fill = n_km2)) +
-  scale_fill_viridis_c()
+  geom_sf(aes(fill = log10(n))) +
+  scale_fill_distiller(direction = 1)
+
 ```
 
-```{r cleanup2}
+
+
+```{r cleanup}
 rm(all2Data)
 ```
 
-## Filter only phytoplankton species.
-
-```{r}
-# Phy_aphiaid <- read_delim("")
-# allPhyData <- all2Data %>%
-#   filter(aphiaid %in% )
-```
-
-```{r, message=F, warning=F, eval=F}
-regionN <- all2Data %>%
-  group_by(mrgid) %>% summarize(n = n()) %>% ungroup() %>%
-  mutate(mrgid = as.numeric(mrgid))
-
-regions %>% right_join(regionN, by = c(mrgid = "mrgid")) %>%
-  mutate(n_km2 = 1e6*n/area_m2) %>%
-  ggplot() +
-  geom_sf(aes(fill = n_km2)) +
-  scale_fill_distiller(direction = 1)
-```
 
 
