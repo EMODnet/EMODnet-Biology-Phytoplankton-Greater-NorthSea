@@ -35,26 +35,23 @@ In a manual selection step, we fill a field called 'include' to determine what d
 # #############################################################################
 all2Data <- read_delim(file.path("../data/derived_data/all2Data.csv"), delim = ";")
 
-# Distinct species in all datasets
-all_spec <- all2Data %>%
-  distinct(scientificnameaccepted)
-
-sum(is.na(all2Data$phylum))
 # Use phyla that are associated with phytoplankton
-non_phy_data <- all2Data %>%
-  filter(!phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa", "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa", NA))
+#non_phy_data <- all2Data %>%
+#  filter(!phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa",
+#                        "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa", NA))
 
 # Distinct species in phy_data
-non_phy_spec <- non_phy_data %>%
-  distinct(scientificnameaccepted, .keep_all = TRUE) %>%
-  select(scientificnameaccepted, phylum, scientificnameauthorship)
+#non_phy_spec <- non_phy_data %>%
+#  distinct(scientificnameaccepted, .keep_all = TRUE) %>%
+#  select(scientificnameaccepted, phylum, scientificnameauthorship)
 
 #write.csv(non_phy_spec, file.path("../data/derived_data/non_phy_spec.csv"), row.names = FALSE)
 
-# Use phyla that are associated with phytoplankton
+# Use phyla that are associated with phytoplankton and that don't go up to genus / species level
 phy_data <- all2Data %>%
-  filter(phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa", "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa", NA)) %>%
-  filter(!genus %in% NA)
+  filter(phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa",
+                       "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa", NA)) %>%
+  filter(!genus %in% NA)  
 
 # Distinct species in phy_data
 phy_spec <- phy_data %>%
@@ -99,13 +96,11 @@ fix_phy <- clean_phy %>%
   distinct(aphiaidaccepted, datasetid, datecollected, decimallatitude, decimallongitude, .keep_all = TRUE) %>%       # Select distinct objects
   mutate(month = lubridate::month(datecollected)) %>%                                                                # Create column with months
   mutate(year = lubridate::year(datecollected)) %>%                                                                  # Create column with years
-  mutate(datasetid_new = str_replace(datasetID, ".csv", "")) %>%                                                     # Datasetid has ".csv" at end
-  select(-datasetID, -datasetid) %>%                                   
-  mutate(datasetID = as.numeric(datasetid_new)) %>%                                                                  # We remove this here
+  mutate(datasetID = as.numeric(datasetID)) %>%                                                                      # Make numeric
   unite(eventID_2, c("datecollected", "decimallatitude", "decimallongitude"), sep = "-", remove = FALSE) %>%         # Make eventID were not present
   mutate(eventIDnew = ifelse(is.na(eventid), eventID_2, eventid)) %>%
   mutate(aphiaid_new = str_extract(aphiaidaccepted, "[^http://marinespecies.org/aphia.php?p=taxdetails&id=]+$")) %>% # Remove website from aphiaid
-  select(-eventid, -eventID_2, -coordinateuncertaintyinmeters, -aphiaidaccepted, -aphiaid, -datasetid_new) %>%       # Remove columns not necessary
+  select(-eventid, -eventID_2, -coordinateuncertaintyinmeters, -aphiaidaccepted, -aphiaid) %>%       # Remove columns not necessary
   rename(eventid = eventIDnew, aphiaid = aphiaid_new)                                                                # Rename these columns created
 
 # Save file
