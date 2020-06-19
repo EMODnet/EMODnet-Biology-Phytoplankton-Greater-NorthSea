@@ -1,0 +1,106 @@
+---
+title: "Comparison of download functions"
+author: "Willem Stolte"
+date: "17/06/2020"
+output:
+  pdf_document: default
+  html_document: default
+subtitle: ''
+---
+
+
+```{r, message = F, echo=F}
+require(tidyverse)
+require(data.table)
+require(httr)
+```
+
+
+
+```{r}
+url_csv <- "https://geo.vliz.be/geoserver/Dataportal/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Dataportal:eurobis-obisenv_full&&viewParams=where:datasetid=4659&outputformat=csv"
+url_json <- "https://geo.vliz.be/geoserver/Dataportal/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Dataportal:eurobis-obisenv_full&&viewParams=where:datasetid=4659&outputformat=application/json"
+```
+
+
+### base R
+
+```{r}
+comparison = list()
+comparison$baseR <- system.time(
+  x <- read.csv(url_csv)
+)
+```
+
+### Tidyverse/readr
+
+```{r, message=F}
+comparison$tidyverse <- system.time(
+  x <- readr::read_csv(url_csv)
+)
+```
+
+### Tidyverse/readr with guess_max = 100000
+
+```{r, message=F}
+comparison$tidyverse_gues <- system.time(
+  x <- readr::read_csv(url_csv, guess_max = 100000)
+)
+```
+
+
+### with column specification
+```{r, message=F}
+comparison$tidyverse_column <- system.time(
+  x <- readr::read_csv(url_csv, col_types = "ccTccccTciiiiiiiiiccccccccccnnnnnnncnncccccccccccccccccccccccccccccccccccccccccnnnccccccc")
+)
+```
+
+
+### datatable
+
+```{r, message=F}
+comparison$datatable <- system.time(
+  x <- data.table::fread(url_csv)
+)
+```
+
+### jsonlite
+
+```{r}
+comparison$jsonlite <- system.time(
+  x <- jsonlite::fromJSON(url_json)
+)
+```
+
+
+
+
+### httr::GET with RETRY and csv
+
+With time-out, the request is submitted again. Parsing as csv
+
+```{r, message = F}
+comparison$httrRetrycsv <- system.time(
+x <- RETRY("GET", url = url_csv, times = 3) %>%  # max retry attempts
+  content(., "parsed")
+)
+```
+### httr::GET with RETRY and json
+
+```{r, message = F}
+comparison$httrRetryjson <- system.time(
+x <- RETRY("GET", url = url_json, times = 3) %>%  # max retry attempts
+  content(., "parsed")
+)
+```
+
+```{r summary}
+comp <- map_df(comparison, list("elapsed")) %>% gather("method", "seconds elapsed")
+str(comp)
+comp %>% 
+ggplot(aes(method, `seconds elapsed`)) +
+  geom_col() + coord_flip()
+```
+
+
