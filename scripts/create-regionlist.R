@@ -1,3 +1,17 @@
+#=======================================================================================
+#
+# Willem Stolte
+# EMODnet Biologie
+# 
+# Last changes:
+# 
+# 2000-06-22
+# geographical area adapted to EEA greater North Sea and Celtic Seas
+# Now also contains Skagerrak and large part of Kattegat
+# Documented in script "create-regionlist.R"
+#
+#=======================================================================================
+
 
 require(leaflet)
 require(tidyverse)
