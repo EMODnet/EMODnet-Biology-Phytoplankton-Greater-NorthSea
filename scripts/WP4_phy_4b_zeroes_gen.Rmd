@@ -5,7 +5,7 @@ output:
       latex_engine: pdflatex
 geometry: "left=1cm, right=1cm, top=0cm, bottom=0cm"
 params:
-  targetGen: "Ceratium"
+  targetGen: "Protoperidinium"
   begin: 1995
   end: 2020
   gridX: 15000
@@ -29,7 +29,7 @@ load(file.path("../data/raw_data/phy_gen.Rdata"))
 
 ```
 
-```{r functions needed for analysis}
+```{r functions needed for analysis, include=FALSE, warning=FALSE}
 # Complete zeroes function for genus:
 completeZeros_gen <- function(df, gen, year){
   selectedDatasets <- df %>% 
@@ -158,7 +158,7 @@ phy_effort_season <- effort_season(phy_c_g)
 
 ```
 
-```{r functions needed for plotting}
+```{r functions needed for plotting, include=FALSE, warning=FALSE}
 # Determine height for first plot
 height_plot1 <- (2+0.5*length(unique(phy_ts_eff$datasetID))) # Size of height plot 1
 
@@ -248,7 +248,7 @@ plot_season_eff(phy_ts_eff, params$targetGen, params$begin, params$end)
 
 ## Distribution map 2a: presence/absence points with effort (as color) 
 
-```{r plot2a, echo=FALSE, warning = FALSE, fig.width = 15, dpi = 184}
+```{r plot2a, echo=FALSE, warning = FALSE, fig.width = 6, dpi = 184}
 # Plot 2a: the presence/absence map (points on grid raster) including effort
 plot_abun_point(df = phy_effort, pres_abse = "pres_abse", Size = "effort", long = "middleXgrid", 
                 lat = "middleYgrid", params$targetGen, 
@@ -257,7 +257,7 @@ plot_abun_point(df = phy_effort, pres_abse = "pres_abse", Size = "effort", long 
 
 ## Distribution map 2b: presence/absence points with effort (as color) per season
 
-```{r plot2b, echo=FALSE, warning = FALSE, fig.width = 15, dpi = 184}
+```{r plot2b, echo=FALSE, warning = FALSE, fig.width = 6, dpi = 184}
 # Plot 2b: the presence/absence map (points on grid raster) per season
 plot_abun_point_season(df = phy_effort_season, "pres_abse", "effort", "middleXgrid", "middleYgrid", params$targetGen, 
                 params$borderx_min, params$borderx_max, params$bordery_min, params$bordery_max)

@@ -34,7 +34,7 @@ phy_sp <- phy_sp %>%
 
 ```
 
-```{r functions needed for analysis}
+```{r functions needed for analysis, include=FALSE, warning=FALSE}
 # Complete zeroes function for species:
 completeZeros_sp <- function(df, species, year){
   selectedDatasets <- df %>% 
@@ -260,7 +260,7 @@ plot_season_eff(phy_ts_eff, params$targetSpecies, params$begin, params$end)
 
 ## Distribution map 2a: presence/absence points with effort (as color)
 
-```{r plot2a, echo=FALSE, warning = FALSE, dpi = 184}
+```{r plot2a, echo=FALSE, warning = FALSE, fig.width = 6, dpi = 184}
 # Plot 2a: the presence/absence map (points on grid raster) including effort
 plot_abun_point(df = phy_effort, pres_abse = "pres_abse", Size = "effort", long = "middleXgrid",
                 lat = "middleYgrid", params$targetSpecies, 
@@ -268,7 +268,7 @@ plot_abun_point(df = phy_effort, pres_abse = "pres_abse", Size = "effort", long 
 ```
 
 ## Distribution map 2b: presence/absence points with effort (as color) per season
-```{r plot2b, echo=FALSE, warning = FALSE, fig.width = 6, fig.height=10, dpi = 184}
+```{r plot2b, echo=FALSE, warning = FALSE, fig.width = 6, dpi = 184}
 # Plot 2b: the presence/absence map (points on grid raster) per season
 plot_abun_point_season(df = phy_effort_season, "pres_abse", "effort", "middleXgrid", "middleYgrid", params$targetSpecies, 
                 params$borderx_min, params$borderx_max, params$bordery_min, params$bordery_max)
