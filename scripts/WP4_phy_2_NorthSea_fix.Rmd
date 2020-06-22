@@ -101,8 +101,11 @@ fix_phy <- clean_phy %>%
   mutate(eventIDnew = ifelse(is.na(eventid), eventID_2, eventid)) %>%
   mutate(aphiaid_new = str_extract(aphiaidaccepted, "[^http://marinespecies.org/aphia.php?p=taxdetails&id=]+$")) %>% # Remove website from aphiaid
   select(-eventid, -eventID_2, -coordinateuncertaintyinmeters, -aphiaidaccepted, -aphiaid) %>%                       # Remove columns not necessary
-  rename(eventid = eventIDnew, aphiaid = aphiaid_new)                                                                # Rename these columns created
-
+  rename(eventid = eventIDnew, aphiaid = aphiaid_new) %>%                                                            # Rename these columns created
+  filter(!grepl('Sylt_Road', collectioncode)) %>%                                                     # Here we merge and fix the Sylt-Romo datasets
+    bind_rows(fix_phy %>%
+      filter(grepl('Sylt_Road', collectioncode)) %>%   
+        mutate(datasetID = 5451)) 
 
 # Save file
 save(fix_phy, file = "../data/raw_data/fix_phy.Rdata")

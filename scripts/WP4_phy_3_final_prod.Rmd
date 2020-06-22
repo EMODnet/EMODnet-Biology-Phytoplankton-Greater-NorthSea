@@ -15,6 +15,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 
 require(tidyverse)
+require(sf)
 ```
 
 ## We now have the dataset we want to work with. These datasets, however, some things still have to be adjusted. 
@@ -38,7 +39,7 @@ temp_phy <- fix_phy %>%
     month %in% 9:11 ~ "autumn",
     month %in% 1:2 ~ "winter",
     month %in% 12 ~ "winter")) %>%                       # 1. Seasons were added
-  mutate(occurrence = "1") %>%
+  mutate(occurrence = 1) %>%
   separate(scientificnameaccepted, c("genus_new", "species"), " ", remove = FALSE) %>%
   select(-genus_new)
 
