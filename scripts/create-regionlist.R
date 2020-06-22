@@ -19,32 +19,24 @@ leaflet() %>% addTiles() %>%
     attribution = "MarineRegions.org"
   )
 
-# have a look in the layer
+# to look at the complete layer
+# layerurl <- "http://geo.vliz.be/geoserver/MarineRegions/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=MarineRegions:eez_iho&outputFormat=application/json"
+# # download layer as spatial sf object
+# allRegions <- sf::st_read(layerurl)
+# st_crs()
 
-layerurl <- "http://geo.vliz.be/geoserver/MarineRegions/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=MarineRegions:eez_iho&outputFormat=application/json"
-# download layer as spatial sf object
-regions <- sf::st_read(layerurl)
-st_crs()
-
-
+# Selection made by hand in QGIS, exported as json
 list.files("data/derived_data")
-roi <- st_read("data/derived_data/greater_north_sea-selection_from_eez-iho-union-v2.geojson")
+roi <- st_read("data/derived_data/greater_north_sea-selection_from_eez-iho_v4.geojson")
 roi %>% select(mrgid) %>% plot()
 
-regions %>% intersect(roi) %>%
+roi %>%
   ggplot() +
-  geom_sf(fill = "blue") +
-  geom_sf(data = regions, fill = "transparent", color = "white") +
-  geom_sf_text(aes(label = mrgid), size = 2.5) +
-  coord_sf(st_bbox(roi)[c(1,3)], st_bbox(roi)[c(2,4)], expand = T)
+  geom_sf(fill = "blue", color = "white") +
+  geom_sf_text(aes(label = mrgid), size = 2.5)
+  # coord_sf(st_bbox(roi)[c(1,3)], st_bbox(roi)[c(2,4)], expand = T)
 
 
 roi %>% st_drop_geometry() %>%
   write_delim("data/derived_data/regions.csv", delim = ";")
 
-regions %>% filter(mrgid %in% roi$mrgid) %>%
-  ggplot() +
-  geom_sf(fill = "blue") +
-  geom_sf(data = regions, fill = "transparent", color = "white") +
-  geom_sf_text(aes(label = mrgid), size = 2.5) +
-  coord_sf(st_bbox(roi)[c(1,3)], st_bbox(roi)[c(2,4)], expand = T)

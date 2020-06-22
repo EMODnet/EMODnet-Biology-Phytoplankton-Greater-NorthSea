@@ -1,25 +1,28 @@
-objectid_1;marregion;mrgid;iho_sea;iho_id;iho_mrgid;eez;eez_id;country;sovereign;sov_id;eez_mrgid;longitude;latitude;area_m2
-1;Irish part of the Inner Seas off the West Coast of Scotland;25177;Inner Seas off the West Coast of Scotland;18;4283;Irish Exclusive Economic Zone;181;Ireland;Ireland;181;5681;-7.502138528492;55.501062115418;5258240645
-2;United Kingdom part of the Inner Seas off the West Coast of Scotland;25178;Inner Seas off the West Coast of Scotland;18;4283;United Kingdom Exclusive Economic Zone;180;United Kingdom;United Kingdom;180;5696;-6.285809470552;56.523938299043;38531637040
-29;Irish part of the Irish Sea and St. George's Channel;25211;Irish Sea and St. George's Channel;19;2357;Irish Exclusive Economic Zone;181;Ireland;Ireland;181;5681;-5.812252517765;53.031032940285;10382061380
-30;United Kingdom part of the Irish Sea and St. George's Channel;25212;Irish Sea and St. George's Channel;19;2357;United Kingdom Exclusive Economic Zone;180;United Kingdom;United Kingdom;180;5696;-4.507087054716;53.564516609379;35431677510
-31;United Kingdom part of the Bristol Channel;25213;Bristol Channel;20;3141;United Kingdom Exclusive Economic Zone;180;United Kingdom;United Kingdom;180;5696;-4.023190323937;51.392436423924;5796461539
-32;Jersey part of the English Channel;25215;English Channel;21;2389;Jersey Exclusive Economic Zone;227;Jersey;United Kingdom;180;21789;-2.230278183435;49.08880436596;2956071790
-33;Guernsey part of the English Channel;25216;English Channel;21;2389;Guernsey Exclusive Economic Zone;228;Guernsey;United Kingdom;180;21788;-2.732397245346;49.647771834285;8666394700
-34;United Kingdom part of the English Channel;25217;English Channel;21;2389;United Kingdom Exclusive Economic Zone;180;United Kingdom;United Kingdom;180;5696;-2.405433831828;50.242437479642;34653791610
-35;French part of the English Channel;25214;English Channel;21;2389;French Exclusive Economic Zone;179;France;France;179;5677;-1.574562860319;49.566119620659;34700062370
-38;Irish part of the Celtic Sea;25221;Celtic Sea;21A;2351;Irish Exclusive Economic Zone;181;Ireland;Ireland;181;5681;-9.262192184561;50.58942807379;74372570700
-39;United Kingdom part of the Celtic Sea;25222;Celtic Sea;21A;2351;United Kingdom Exclusive Economic Zone;180;United Kingdom;United Kingdom;180;5696;-7.226242346461;49.785209961481;85982115190
-40;French part of the Celtic Sea;25220;Celtic Sea;21A;2351;French Exclusive Economic Zone;179;France;France;179;5677;-6.173143493275;47.923776667516;54829792780
-48;Belgian part of the North Sea;26567;North Sea;4;2350;Belgian Exclusive Economic Zone;59;Belgium;Belgium;59;3293;2.703577502374;51.465797918128;3444407475
-49;Danish part of the North Sea;25231;North Sea;4;2350;Danish Exclusive Economic Zone;175;Denmark;Denmark;175;5674;6.539745149784;56.169300239036;49820539270
-50;Dutch part of the North Sea;25232;North Sea;4;2350;Dutch Exclusive Economic Zone;177;Netherlands;Netherlands;177;5668;4.188581712004;53.623705588214;63727681920
-51;United Kingdom part of the North Sea;25235;North Sea;4;2350;United Kingdom Exclusive Economic Zone;180;United Kingdom;United Kingdom;180;5696;0.340059626452;56.670950248144;245287093500
-52;Norwegian part of the North Sea;25233;North Sea;4;2350;Norwegian Exclusive Economic Zone;223;Norway;Norway;223;5686;4.058819157873;58.591406304506;119546961200
-53;French part of the North Sea;25234;North Sea;4;2350;French Exclusive Economic Zone;179;France;France;179;5677;2.104363191321;51.187988789971;1927370450
-54;German part of the North Sea;26568;North Sea;4;2350;German Exclusive Economic Zone;176;Germany;Germany;176;5669;6.793483894013;54.588366915572;41350535760
-59;Faeroe Islands part of the Norwegian Sea;25240;Norwegian Sea;6;2353;Faeroe Islands Exclusive Economic Zone;141;Faeroe Islands;Denmark;175;8435;-4.844418082151;63.787609132488;125725279800
-62;United Kingdom part of the Norwegian Sea;25244;Norwegian Sea;6;2353;United Kingdom Exclusive Economic Zone;180;United Kingdom;United Kingdom;180;5696;-0.610161707169;62.093918903344;50238018230
-155;Faeroe Islands part of the North Atlantic Ocean;25347;North Atlantic Ocean;23;1912;Faeroe Islands Exclusive Economic Zone;141;Faeroe Islands;Denmark;175;8435;-9.138800168586;61.461852073149;140065598700
-166;Irish part of the North Atlantic Ocean;25361;North Atlantic Ocean;23;1912;Irish Exclusive Economic Zone;181;Ireland;Ireland;181;5681;-12.629149579687;53.050087084665;318594968600
-169;United Kingdom part of the North Atlantic Ocean;25362;North Atlantic Ocean;23;1912;United Kingdom Exclusive Economic Zone;180;United Kingdom;United Kingdom;180;5696;-8.853981677806;58.400311973312;257939649200
+mrgid;marregion;mrgid_iho;iho_sea;mrgid_eez;eez;mrgid_ter1;territory1;iso_ter1;un_ter1;mrgid_sov1;sovereign1;iso_sov1;un_sov1;mrgid_ter2;territory2;iso_ter2;un_ter2;mrgid_sov2;sovereign2;iso_sov2;un_sov2;mrgid_ter3;territory3;iso_ter3;un_ter3;mrgid_sov3;sovereign3;iso_sov3;un_sov3;area_km2;x_1;y_1
+26567;Belgian part of the North Sea;2350;North Sea;3293;Belgian Exclusive Economic Zone;14;Belgium;BEL;56;14;Belgium;BEL;56;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;3495;2.70504;51.46545
+25224;Danish part of the Kattegat;2374;Kattegat;5674;Danish Exclusive Economic Zone;2157;Denmark;DNK;208;2157;Denmark;DNK;208;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;27578;11.07848;56.20368
+25231;Danish part of the North Sea;2350;North Sea;5674;Danish Exclusive Economic Zone;2157;Denmark;DNK;208;2157;Denmark;DNK;208;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;49717;6.52725;56.16975
+25227;Danish part of the Skagerrak;2379;Skagerrak;5674;Danish Exclusive Economic Zone;2157;Denmark;DNK;208;2157;Denmark;DNK;208;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;10351;9.49547;57.65663
+25232;Dutch part of the North Sea;2350;North Sea;5668;Dutch Exclusive Economic Zone;15;Netherlands;NLD;528;15;Netherlands;NLD;528;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;64328;4.18654;53.61208
+25220;French part of the Celtic Sea;2351;Celtic Sea;5677;French Exclusive Economic Zone;17;France;FRA;250;17;France;FRA;250;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;61773;-6.34847;47.98214
+25214;French part of the English Channel;2389;English Channel;5677;French Exclusive Economic Zone;17;France;FRA;250;17;France;FRA;250;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;36585;-1.59231;49.55885
+25234;French part of the North Sea;2350;North Sea;5677;French Exclusive Economic Zone;17;France;FRA;250;17;France;FRA;250;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;1750;2.14869;51.20723
+22762;German part of the North Sea;2350;North Sea;5669;German Exclusive Economic Zone;2101;Germany;DEU;276;2101;Germany;DEU;276;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;41334;6.78694;54.58562
+25216;Guernsey part of the English Channel;2389;English Channel;21788;Guernsey Exclusive Economic Zone;4377;Guernsey;GGY;831;2208;United Kingdom;GBR;826;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;6531;-2.65845;49.63968
+25221;Irish part of the Celtic Sea;2351;Celtic Sea;5681;Irish Exclusive Economic Zone;2114;Ireland;IRL;372;2114;Ireland;IRL;372;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;82640;-9.2932;50.44664
+25177;Irish part of the Inner Seas off the West Coast of Scotland;4283;Inner Seas off the West Coast of Scotland;5681;Irish Exclusive Economic Zone;2114;Ireland;IRL;372;2114;Ireland;IRL;372;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;5849;-7.53151;55.54762
+25211;Irish part of the Irish Sea and St. George's Channel;2357;Irish Sea and St. George's Channel;5681;Irish Exclusive Economic Zone;2114;Ireland;IRL;372;2114;Ireland;IRL;372;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;10560;-5.81257;53.03292
+25361;Irish part of the North Atlantic Ocean;1912;North Atlantic Ocean;5681;Irish Exclusive Economic Zone;2114;Ireland;IRL;372;2114;Ireland;IRL;372;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;327988;-12.59928;53.10981
+25215;Jersey part of the English Channel;2389;English Channel;21789;Jersey Exclusive Economic Zone;4378;Jersey;JEY;832;2208;United Kingdom;GBR;826;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;2277;-2.19116;49.1215
+25233;Norwegian part of the North Sea;2350;North Sea;5686;Norwegian Exclusive Economic Zone;2252;Norway;NOR;578;2252;Norway;NOR;578;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;119489;4.0539;58.5822
+25229;Norwegian part of the Skagerrak;2379;Skagerrak;5686;Norwegian Exclusive Economic Zone;2252;Norway;NOR;578;2252;Norway;NOR;578;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;15216;9.20065;58.36211
+25225;Swedish part of the Kattegat;2374;Kattegat;5694;Swedish Exclusive Economic Zone;2180;Sweden;SWE;752;2180;Sweden;SWE;752;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;7913;12.10107;56.91289
+25228;Swedish part of the Skagerrak;2379;Skagerrak;5694;Swedish Exclusive Economic Zone;2180;Sweden;SWE;752;2180;Sweden;SWE;752;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;6523;10.88016;58.3751
+25213;United Kingdom part of the Bristol Channel;3141;Bristol Channel;5696;United Kingdom Exclusive Economic Zone;2208;United Kingdom;GBR;826;2208;United Kingdom;GBR;826;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;5765;-4.01935;51.39223
+25222;United Kingdom part of the Celtic Sea;2351;Celtic Sea;5696;United Kingdom Exclusive Economic Zone;2208;United Kingdom;GBR;826;2208;United Kingdom;GBR;826;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;71126;-6.90654;49.98005
+25217;United Kingdom part of the English Channel;2389;English Channel;5696;United Kingdom Exclusive Economic Zone;2208;United Kingdom;GBR;826;2208;United Kingdom;GBR;826;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;36211;-2.41886;50.22961
+25178;United Kingdom part of the Inner Seas off the West Coast of Scotland;4283;Inner Seas off the West Coast of Scotland;5696;United Kingdom Exclusive Economic Zone;2208;United Kingdom;GBR;826;2208;United Kingdom;GBR;826;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;38641;-6.27885;56.53196
+25212;United Kingdom part of the Irish Sea and St. George's Channel;2357;Irish Sea and St. George's Channel;5696;United Kingdom Exclusive Economic Zone;2208;United Kingdom;GBR;826;2208;United Kingdom;GBR;826;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;35541;-4.50052;53.56714
+25362;United Kingdom part of the North Atlantic Ocean;1912;North Atlantic Ocean;5696;United Kingdom Exclusive Economic Zone;2208;United Kingdom;GBR;826;2208;United Kingdom;GBR;826;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;246820;-8.80577;58.59842
+25235;United Kingdom part of the North Sea;2350;North Sea;5696;United Kingdom Exclusive Economic Zone;2208;United Kingdom;GBR;826;2208;United Kingdom;GBR;826;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;247106;0.33018;56.68868
+25244;United Kingdom part of the Norwegian Sea;2353;Norwegian Sea;5696;United Kingdom Exclusive Economic Zone;2208;United Kingdom;GBR;826;2208;United Kingdom;GBR;826;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;0;NA;NA;0;50146;-0.59302;62.09991
