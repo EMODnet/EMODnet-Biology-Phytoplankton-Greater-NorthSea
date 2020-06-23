@@ -24,8 +24,9 @@ knitr::opts_chunk$set(fig.pos = 'H')
 require(tidyverse)
 require(rworldxtra)
 
+dataDir <- "data/derived_data/"
 # Load phy data set from working directory
-load(file.path("../data/derived_data/phy_gen.Rdata"))
+load(file.path(dataDir, "phy_gen.Rdata"))
 
 ```
 
@@ -130,7 +131,7 @@ dbs_zero_g <- phy_c_g %>%
 
 # Here we remove the duplicates that have the same location and time in different datasets 
 phy_c_g <- phy_c_g %>%
-  distinct(genus, date, xUTM, yUTM, date_year, season, occurrence, .keep_all = TRUE)
+  distinct(genus, date, xUTM, yUTM, year, season, occurrence, .keep_all = TRUE)
 
 # #############################################################################
 # Include the gridnr in the dataframe
@@ -160,7 +161,7 @@ phy_effort_season <- effort_season(phy_c_g)
 
 ```{r functions needed for plotting, include=FALSE, warning=FALSE}
 # Determine height for first plot
-height_plot1 <- (2+0.5*length(unique(phy_ts_eff$datasetID))) # Size of height plot 1
+height_plot1 <- (2+0.4*length(unique(phy_ts_eff$datasetID))) # Size of height plot 1
 
 # Create background map from Rworldxtra
 data("countriesHigh") 
@@ -176,7 +177,7 @@ plot_ts_eff <- function(df, sp_gen, begin, end) {
     geom_point(aes(size = effort_per_season, color = rel_abun)) +
     scale_shape_manual(values = c(21)) +
     scale_size("Effort per season", range = c(0.25,3.5), 
-               breaks = c(0,1,10,50,100,200), labels = c(0,1,10,50,100,200), limits = c(0,200)) +
+               breaks = c(0,1,10,50,100,500), labels = c(0,1,10,50,100,500), limits = c(0,500)) +
     scale_colour_continuous("Relative abundance", type = "viridis") +
     scale_x_continuous(limits = c(begin, end)) +
     facet_grid(abbr ~ .) +
@@ -190,8 +191,6 @@ plot_ts_eff <- function(df, sp_gen, begin, end) {
 plot_season_eff <- function(df, sp_gen, begin, end) {
   ggplot(df, aes(season, rel_abun)) +
     geom_boxplot() +
-    scale_size("Effort per season", range = c(0.25,3.5), 
-               breaks = c(0,1,10,50,100,200), labels = c(0,1,10,50,100,200), limits = c(0,200)) +
     theme(strip.text.y = element_text(angle = 0),legend.position = "bottom") +
     labs(subtitle = sp_gen, x = "Season", y = "relative abun")
 }
@@ -201,14 +200,15 @@ plot_abun_point <- function(df, pres_abse, Size, long, lat, speciesName, borderx
   ggplot(data = df) +
     geom_point(aes_string(x = long, y = lat, colour = pres_abse, size = Size), show.legend = TRUE) +
     scale_colour_continuous("Relative abundance", type = "viridis", limits = c(0,1)) +
-    scale_size_continuous("Events/grid", range = c(0.5, 3.5),
-                          breaks = c(1,5,10,50,100,500), labels = c(1,5,10,50,100,500), limits = c(1,500)) +
+    scale_size_continuous("Events/grid", range = c(0.25, 3.5),
+                          breaks = c(1,10,50,100,500,1000,1500), labels = c(1,10,50,100,500,1000,1500), limits = c(1,1500)) +
     guides(size = guide_legend(order = 1)) +
     #guides(colour = guide_legend(override.aes = list(breaks = c(0.0,0.25,0.5,0.75,1.0)))) +
     labs(title = speciesName, x = "Longitude", y = "Latitude") + 
     geom_sf(data = bgmap, fill = "darkgrey")  +
     theme(panel.background = element_rect(fill = "lightgrey"),
-          panel.grid = element_line(color = "black")) +
+          panel.grid = element_line(color = "black"),
+          legend.position = "bottom") +
     coord_sf(xlim = c(borderx_min, borderx_max), ylim = c(bordery_min, bordery_max)) 
 }
 
@@ -217,8 +217,8 @@ plot_abun_point_season <- function(df, pres_abse, Size, long, lat, speciesName, 
   ggplot(data = df) +
     geom_point(aes_string(x = long, y = lat, colour = pres_abse, size = Size), show.legend = TRUE) +
     scale_colour_continuous("Relative abundance", type = "viridis", limits = c(0,1)) +
-    scale_size_continuous("Events/grid", range = c(0.5, 3.5),
-                          breaks = c(1,5,10,50,100,500), labels = c(1,5,10,50,100,500), limits = c(1,500)) +
+    scale_size_continuous("Events/grid", range = c(0.25, 3.5),
+                          breaks = c(1,10,50,100,500,1000), labels = c(1,10,50,100,500,1000), limits = c(1,1000)) +
     labs(title = speciesName, x = "Longitude", y = "Latitude") + 
     facet_wrap(~season, nrow = 2) +
     geom_sf(data = bgmap, fill = "darkgrey")  +
