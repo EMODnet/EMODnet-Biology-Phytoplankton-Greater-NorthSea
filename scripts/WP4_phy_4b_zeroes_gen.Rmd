@@ -3,6 +3,7 @@ title: "`r params$targetGen`"
 output: 
     rmarkdown::pdf_document:
       latex_engine: pdflatex
+      dev: png
 geometry: "left=1cm, right=1cm, top=0cm, bottom=0cm"
 params:
   targetGen: "Protoperidinium"
@@ -176,12 +177,12 @@ plot_ts_eff <- function(df, sp_gen, begin, end) {
   ggplot(df, aes(year, season)) +
     geom_point(aes(size = effort_per_season, color = rel_abun)) +
     scale_shape_manual(values = c(21)) +
-    scale_size("Effort per season", range = c(0.25,3.5), 
+    scale_size("Effort per season", range = c(0.25,2.5), 
                breaks = c(0,1,10,50,100,500), labels = c(0,1,10,50,100,500), limits = c(0,500)) +
     scale_colour_continuous("Relative abundance", type = "viridis") +
     scale_x_continuous(limits = c(begin, end)) +
     facet_grid(abbr ~ .) +
-    theme(strip.text.y = element_text(angle = 0),
+    theme(strip.text.y = element_text(angle = 0), axis.text.y = element_text(size = 6),
           legend.position = "bottom") +
     labs(subtitle = sp_gen, x = "Year", y = "Season")
 }
@@ -207,8 +208,7 @@ plot_abun_point <- function(df, pres_abse, Size, long, lat, speciesName, borderx
     labs(title = speciesName, x = "Longitude", y = "Latitude") + 
     geom_sf(data = bgmap, fill = "darkgrey")  +
     theme(panel.background = element_rect(fill = "lightgrey"),
-          panel.grid = element_line(color = "black"),
-          legend.position = "bottom") +
+          panel.grid = element_line(color = "black")) +
     coord_sf(xlim = c(borderx_min, borderx_max), ylim = c(bordery_min, bordery_max)) 
 }
 
@@ -232,7 +232,7 @@ plot_abun_point_season <- function(df, pres_abse, Size, long, lat, speciesName, 
 
 ## Time series of data availability per season including effort
 
-```{r plot1a, echo=FALSE, fig.height = height_plot1, fig.fullwidth = TRUE, warning=FALSE, results='asis', dpi = 184}
+```{r plot1a, echo=FALSE, fig.height = height_plot1, fig.fullwidth = TRUE, warning=FALSE, results='asis', dpi = 224}
 # Plot 1a: plot the relative abundance per season / per year for each genera and dataset + EFFORT
 plot_ts_eff(phy_ts_eff, params$targetGen, params$begin, params$end)
 ```
@@ -248,7 +248,7 @@ plot_season_eff(phy_ts_eff, params$targetGen, params$begin, params$end)
 
 ## Distribution map 2a: presence/absence points with effort (as color) 
 
-```{r plot2a, echo=FALSE, warning = FALSE, fig.width = 12, dpi = 184}
+```{r plot2a, echo=FALSE, warning = FALSE, fig.width = 8, dpi = 224}
 # Plot 2a: the presence/absence map (points on grid raster) including effort
 plot_abun_point(df = phy_effort, pres_abse = "pres_abse", Size = "effort", long = "middleXgrid", 
                 lat = "middleYgrid", params$targetGen, 
@@ -257,7 +257,7 @@ plot_abun_point(df = phy_effort, pres_abse = "pres_abse", Size = "effort", long 
 
 ## Distribution map 2b: presence/absence points with effort (as color) per season
 
-```{r plot2b, echo=FALSE, warning = FALSE, fig.width = 16, dpi = 184}
+```{r plot2b, echo=FALSE, warning = FALSE, fig.width = 7, fig.height=11,  dpi = 224}
 # Plot 2b: the presence/absence map (points on grid raster) per season
 plot_abun_point_season(df = phy_effort_season, "pres_abse", "effort", "middleXgrid", "middleYgrid", params$targetGen, 
                 params$borderx_min, params$borderx_max, params$bordery_min, params$bordery_max)
