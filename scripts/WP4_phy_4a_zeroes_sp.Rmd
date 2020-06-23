@@ -8,12 +8,12 @@ params:
   targetSpecies: "Ditylum brightwellii"
   begin: 1995
   end: 2020
-  gridX: 15000
-  gridY: 15000
-  borderx_min: -850000
-  borderx_max: 910000
-  bordery_min: 5150000
-  bordery_max: 7400000
+  gridX: 35000
+  gridY: 35000
+  borderx_min: -800000
+  borderx_max: 1250000
+  bordery_min: 5250000
+  bordery_max: 6950000
 ---
 
 ```{r setup, include=FALSE, warning=FALSE}
@@ -26,11 +26,11 @@ require(tidyverse)
 require(rworldxtra)
 
 # Load phy data set from working directory
-load(file.path("../data/raw_data/phy_sp.Rdata"))
+load(file.path("../data/derived_data/phy_sp.Rdata"))
      
 # Remove the duplicates that have the same location and time of sampling (between different datasets)
 phy_sp <- phy_sp %>%
-  select(aphiaid, scientificnameaccepted, datecollected, datasetID, mrgid, eventid, month, year, season, xUTM, yUTM, occurrence) 
+  select(aphiaid, scientificnameaccepted, date, datasetID, abbr, mrgid, eventid, month, year, season, xUTM, yUTM, occurrence) 
 
 ```
 
@@ -44,9 +44,9 @@ completeZeros_sp <- function(df, species, year){
   df %>%
     dplyr::filter(year %in% year) %>%
     dplyr::filter(datasetID %in% selectedDatasets) %>%
-    group_by(datasetID, year) %>%
+    group_by(datasetID, abbr, year) %>%
     tidyr::complete(nesting(aphiaid, scientificnameaccepted),         # these will be completed, with their occurrence
-                    nesting(datecollected, xUTM, yUTM, season, eventid),   # Combinations of these parameters are to be found
+                    nesting(date, xUTM, yUTM, season, eventid),   # Combinations of these parameters are to be found
                     fill = list(occurrence = 0)) %>% 
     ungroup() %>%
     filter(scientificnameaccepted == species) %>%
@@ -74,7 +74,7 @@ co2gr <- function(lon,lat,fdx,fdy){
 # Create data for time series plot including effort
 time_effort <- function(df) {
   df %>% ungroup() %>%
-    group_by(datasetID, year, season) %>%
+    group_by(datasetID, abbr, year, season) %>%
     summarize(effort_per_season = n(), positives = sum(occurrence == 1)) %>%
     mutate(rel_abun = positives/effort_per_season) %>% ungroup() %>%
     mutate(season = factor(season, levels = rev(c("autumn", "summer", "spring", "winter")))) 
@@ -110,12 +110,12 @@ phy_c <- completeZeros_sp(phy_sp, params$targetSpecies, params$begin:params$end)
 
 # This df contains duplicates from different datasets that have the same location and time, which seems unlikely
 dup_zero <- phy_c %>% 
-  arrange(aphiaid, datecollected, xUTM, yUTM, occurrence, season) %>%
+  arrange(aphiaid, date, xUTM, yUTM, occurrence, season) %>%
   select(-datasetID) %>%
   duplicated %>% which
 # Create the df with duplicates
 dbs_zero <- phy_c %>% 
-  arrange(aphiaid, datecollected, xUTM, yUTM, occurrence, season) %>%
+  arrange(aphiaid, date, xUTM, yUTM, occurrence, season) %>%
   ungroup() %>%
   slice(sort(c(dup_zero, dup_zero-1))) 
 
@@ -134,7 +134,7 @@ dbs_zero <- phy_c %>%
 
 # Here we remove the duplicates that have the same location and time in different datasets 
 phy_c <- phy_c %>%
-  distinct(aphiaid, scientificnameaccepted, datecollected, xUTM, yUTM, year, season, occurrence, .keep_all = TRUE) 
+  distinct(aphiaid, scientificnameaccepted, date, xUTM, yUTM, year, season, occurrence, .keep_all = TRUE) 
 
 # #############################################################################
 # Include the gridnr in the dataframe
@@ -163,9 +163,6 @@ phy_ts_eff <- time_effort(phy_c)
 phy_effort <- effort_function(phy_c) 
 phy_effort_season <- effort_season(phy_c)
 
-save(phy_ts_eff, file = "../data/derived_data/phy_ts_eff.Rdata")
-save(phy_effort, file = "../data/derived_data/phy_effort.Rdata")
-save(phy_effort_season, file = "../data/derived_data/phy_effort_season.Rdata")
 ```
 
 
@@ -190,7 +187,7 @@ plot_ts_eff <- function(df, sp_gen, begin, end) {
                breaks = c(0,1,10,50,100,200), labels = c(0,1,10,50,100,200), limits = c(0,200)) +
     scale_colour_continuous("Relative abundance", type = "viridis") +
     scale_x_continuous(limits = c(begin, end)) +
-    facet_grid(datasetID ~ .) +
+    facet_grid(abbr ~ .) +
     theme(strip.text.y = element_text(angle = 0),
           legend.position = "bottom") +
     labs(subtitle = sp_gen, x = "Year", y = "Season")
@@ -260,7 +257,7 @@ plot_season_eff(phy_ts_eff, params$targetSpecies, params$begin, params$end)
 
 ## Distribution map 2a: presence/absence points with effort (as color)
 
-```{r plot2a, echo=FALSE, warning = FALSE, fig.width = 6, dpi = 184}
+```{r plot2a, echo=FALSE, warning = FALSE, fig.width = 12, dpi = 184}
 # Plot 2a: the presence/absence map (points on grid raster) including effort
 plot_abun_point(df = phy_effort, pres_abse = "pres_abse", Size = "effort", long = "middleXgrid",
                 lat = "middleYgrid", params$targetSpecies, 
@@ -268,7 +265,7 @@ plot_abun_point(df = phy_effort, pres_abse = "pres_abse", Size = "effort", long 
 ```
 
 ## Distribution map 2b: presence/absence points with effort (as color) per season
-```{r plot2b, echo=FALSE, warning = FALSE, fig.width = 6, dpi = 184}
+```{r plot2b, echo=FALSE, warning = FALSE, fig.width = 16, dpi = 184}
 # Plot 2b: the presence/absence map (points on grid raster) per season
 plot_abun_point_season(df = phy_effort_season, "pres_abse", "effort", "middleXgrid", "middleYgrid", params$targetSpecies, 
                 params$borderx_min, params$borderx_max, params$bordery_min, params$bordery_max)

@@ -120,6 +120,12 @@ datasetids <- allDataTrait %>% distinct(datasetid) %>%
 allDataTrait %>% distinct(scientificnameaccepted) %>% dim() # 617 species, nu 780
 allDataTrait %>% distinct(decimallatitude, decimallongitude) %>% dim() # 26667 localities, nu 28625
 
+phy_spec_trait <- allDataTrait %>%
+  distinct(scientificnameaccepted) %>%
+  mutate(trait = "phytoplankton")
+
+write_delim(phy_spec_trait, file.path(dataDir, "phy_spec_traits.csv"), delim = ";")
+
 #==== retrieve data by dataset ==============
 #
 

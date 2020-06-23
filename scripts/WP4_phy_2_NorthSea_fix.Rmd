@@ -12,8 +12,8 @@ output:
 
 ```{r global_options, include=FALSE}
 
-knitr::opts_chunk$set(fig.width=12, fig.height = 10, fig.path = 'Figs/',
-                      echo = FALSE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
+#knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 
 require(robis)
 require(lubridate)
@@ -28,7 +28,7 @@ In the next step of the analysis, we filter out all datasets that have species k
 In a manual selection step, we fill a field called 'include' to determine what datasets we are going to use in subsequent analysis. We re-read the .csv file and use it to collect the final set of records to be used. We store these records in a binary file.
 
 
-```{r manipulating of datasets, warning = FALSE}
+```{r manipulating of datasets, warning = FALSE, echo = FALSE}
 
 # #############################################################################
 # Load these records with data
@@ -49,42 +49,66 @@ all2Data <- read_delim(file.path("../data/derived_data/all2Data.csv"), delim = "
 
 # Use phyla that are associated with phytoplankton and that don't go up to genus / species level
 phy_data <- all2Data %>%
-  filter(phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa",
-                       "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa", NA)) %>%
+  filter(phylum %in% c("Cyanobacteria", "Bigyra", "Cercozoa", "Ciliophora", "Cryptophyta", "Foraminifera", "Haptophyta", "Heliozoa", "Myzozoa", "Ochrophyta", "Oomycota", "Radiozoa", "Chlorophyta", "Choanozoa", "Euglenozoa", NA)) %>%
   filter(!genus %in% NA)  
 
 # Distinct species in phy_data
 phy_spec <- phy_data %>%
   distinct(scientificnameaccepted, .keep_all = TRUE) %>%
   select(scientificnameaccepted, aphiaidaccepted, phylum, scientificnameauthorship) 
-  
+
+# Load the file including scientificnames that have the trait "phytoplankton" assigned
+phy_spec_trait <- read_delim(file.path("../data/derived_data/phy_spec_traits.csv"), delim = ";")
+
+# Join these two species files, so that we have the traits from Worms in our species list
+phy_spec_new <- phy_spec %>%
+  left_join(., phy_spec_trait, by = "scientificnameaccepted")
+
 # Write csv
-write.csv(phy_spec, file.path("../data/derived_data/phy_spec.csv"), row.names = FALSE)
+write.csv(phy_spec_new, file.path("../data/derived_data/phy_spec_new.csv"), row.names = FALSE)
 
+# Exclude the species that are not phytoplankton, they are summed in this list. This is specific for the North Sea:
+phy_corrected <- read_delim(file.path("../data/derived_data/phy_spec_new_corrected.csv"), delim = ";")
 
-# Exclude the species that are not phytoplankton, they are summed in this list. This is specific
-phy_corrected <- read_delim(file.path("../data/derived_data/phy_spec_corrected_new.csv"), delim = ";")
+# This file contains several traits, i.e. 
+# "phytoplankton" (which came from the WORMS traits)
+# "phy" (assigned based on experience), 
+# "cyano" (for cyanobacteria, 
+# "foram" (for foraminifera) and 
+# "not" (when they are NOT phytoplankton). 
+# We use
+phy_traits_used <- c("phytoplankton", "phy", "cyano")
 
 # Select phytoplankton only in this file
 phy_spec_used <- phy_corrected %>%
-  filter(phy_or_not %in% "phy")
+  filter(trait %in% phy_traits_used)
 
 # #############################################################################
 # Here we do the first cleaning of the datasets
-# 1. We exclude non-phytoplankton species that have been selected manually for your dataset (see file uploaded above)
-# 2. We exclude the observation if it doesn't contain any data on genus or species level
-# 3. We exclude the duplicates for observations with the same aphiaID, dataset, date and location
+# 1. We exclude non-phytoplankton species that have been selected manually for our dataset (see file uploaded above)
 # #############################################################################
 clean_phy <- phy_data %>% 
-  filter(scientificnameaccepted %in% phy_spec_used$scientificnameaccepted) %>%    # Exclude non-phytoplankton
-  distinct(aphiaid, datasetID, datecollected, decimallongitude, decimallatitude, .keep_all = TRUE) # Filter out the duplicates
-
+  filter(scientificnameaccepted %in% phy_spec_used$scientificnameaccepted)    # Exclude non-phytoplankton
 
 ```
 
 ## Here we do some manual repairs on datasets that are still not usable. 
 
-```{r fix a number of datasets}
+```{r fix a number of datasets, warning = FALSE, echo = FALSE}
+# Incl a file that contains the datasets and the short abbr of dataset (created manually)
+datasets_modified <- read_delim(file.path("../data/derived_data/allDatasets_modified_2020-06-22.csv"), delim = ";") %>%
+  rename(datasetID = datasetid)
+
+# Join the datasetnames and abbreviations to the main df
+clean_phy <- clean_phy %>%
+  left_join(., datasets_modified, by = "datasetID")
+
+# Merge the Sylt Romo datasets
+clean_phy <- clean_phy %>%
+  filter(!grepl('Sylt_Road', collectioncode)) %>%                                                     # Here we merge and fix the Sylt-Romo datasets
+    bind_rows(clean_phy %>%
+      filter(grepl('Sylt_Road', collectioncode)) %>%   
+        mutate(datasetID = 5451)) 
 
 # #############################################################################
 # Here we do some manual repairs on datasets that are still not usable, we fix:
@@ -94,6 +118,8 @@ clean_phy <- phy_data %>%
 # #############################################################################
 fix_phy <- clean_phy %>%
   distinct(aphiaidaccepted, datasetid, datecollected, decimallatitude, decimallongitude, .keep_all = TRUE) %>%       # Select distinct objects
+  filter(!datecollected %in% NA) %>%                                                                                 # Remove obs. without date (9)
+  mutate(date = as.Date.POSIXct(datecollected)) %>%                                                                  # Make sure all dates are in one format
   mutate(month = lubridate::month(datecollected)) %>%                                                                # Create column with months
   mutate(year = lubridate::year(datecollected)) %>%                                                                  # Create column with years
   mutate(datasetID = as.numeric(datasetID)) %>%                                                                      # Make numeric
@@ -101,16 +127,11 @@ fix_phy <- clean_phy %>%
   mutate(eventIDnew = ifelse(is.na(eventid), eventID_2, eventid)) %>%
   mutate(aphiaid_new = str_extract(aphiaidaccepted, "[^http://marinespecies.org/aphia.php?p=taxdetails&id=]+$")) %>% # Remove website from aphiaid
   select(-eventid, -eventID_2, -coordinateuncertaintyinmeters, -aphiaidaccepted, -aphiaid) %>%                       # Remove columns not necessary
-  rename(eventid = eventIDnew, aphiaid = aphiaid_new) %>%                                                            # Rename these columns created
-  filter(!grepl('Sylt_Road', collectioncode)) %>%                                                     # Here we merge and fix the Sylt-Romo datasets
-    bind_rows(fix_phy %>%
-      filter(grepl('Sylt_Road', collectioncode)) %>%   
-        mutate(datasetID = 5451)) 
+  rename(eventid = eventIDnew, aphiaid = aphiaid_new)                                                             # Rename these columns created
 
 # Save file
-save(fix_phy, file = "../data/raw_data/fix_phy.Rdata")
+save(fix_phy, file = "../data/derived_data/fix_phy.Rdata")
 
-  
 ```
 
 ## Reproducibility
