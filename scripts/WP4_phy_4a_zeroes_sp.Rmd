@@ -6,7 +6,7 @@ output:
       dev: png
 geometry: "left=1cm, right=1cm, top=0cm, bottom=0cm"
 params:
-  targetSpecies: "Ditylum brightwellii"
+  targetSpecies: "Tripos muelleri"
   begin: 1995
   end: 2020
   gridX: 35000
@@ -150,9 +150,6 @@ phy_c$middleYgrid <- grconv$middleYgrid
 csv_Dir <- "product/csv_files/"
   
 write.csv(phy_c, paste0(csv_Dir, params$targetSpecies, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
-
-# Determine height for first plot
-height_plot1 <- (2+0.5*length(unique(phy_c$datasetID))) # Size of height plot 1
 
 # #############################################################################
 # calculate time-series and effort per season

@@ -42,7 +42,6 @@ temp_phy <- fix_phy %>%
   separate(scientificnameaccepted, c("genus_new", "species"), " ", remove = FALSE) %>%    # 3. Species name added
   select(-genus_new)
 
-sum(is.na(temp_phy$season))
 # #############################################################################
 # 4. Coordinates have to be changed (from WGS84 to UTM)
 phy <- temp_phy %>% 

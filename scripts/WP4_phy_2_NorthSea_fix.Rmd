@@ -62,7 +62,7 @@ phy_spec_trait <- read_delim(file.path("../data/derived_data/phy_spec_traits.csv
 
 # Join these two species files, so that we have the traits from Worms in our species list
 phy_spec_new <- phy_spec %>%
-  left_join(., phy_spec_trait, by = "scientificnameaccepted")
+  left_join(., phy_spec_v1, by = "scientificnameaccepted")
 
 # Write csv
 write.csv(phy_spec_new, file.path("../data/derived_data/phy_spec_new.csv"), row.names = FALSE)
@@ -88,15 +88,16 @@ phy_spec_used <- phy_corrected %>%
 # 1. We exclude non-phytoplankton species that have been selected manually for our dataset (see file uploaded above)
 # #############################################################################
 clean_phy <- phy_data %>% 
-  filter(scientificnameaccepted %in% phy_spec_used$scientificnameaccepted)    # Exclude non-phytoplankton
-
+  filter(scientificnameaccepted %in% phy_spec_used$scientificnameaccepted) %>%   # Exclude non-phytoplankton
+  mutate(datasetID = as.numeric(datasetID))
+  
 ```
 
 ## Here we do some manual repairs on datasets that are still not usable. 
 
 ```{r fix a number of datasets, warning = FALSE, echo = FALSE}
 # Incl a file that contains the datasets and the short abbr of dataset (created manually)
-datasets_modified <- read_delim(file.path("../data/derived_data/allDatasets_modified_2020-06-22.csv"), delim = ";") %>%
+datasets_modified <- read_delim(file.path("../data/derived_data/allDatasets_modified_2020-06-24.csv"), delim = ";") %>%
   rename(datasetID = datasetid)
 
 # Join the datasetnames and abbreviations to the main df

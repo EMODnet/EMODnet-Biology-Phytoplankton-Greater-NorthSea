@@ -222,7 +222,7 @@ notOKdatasets <- datasetids_modified$datasetid[datasetids_modified$keep == "3"]
 #== Download relevant datasets per region, no trait selection critera =======================
 
 getDatasets <- datasetids %>%
-  filter(!datasetid %in% notOKdatasets & !datasetid %in% doubtdatasets)
+  filter(!datasetid %in% notOKdatasets)
 
 beginDate<- "1995-01-01"
 endDate <- "2020-05-31"
@@ -290,6 +290,6 @@ all2Data <- lapply((filelist), function(x)
 write_delim(all2Data, file.path(dataDir, "all2Data.csv"), delim = ";")
 save(all2Data, file = "all2Data.Rdata")
 
-all2Data %>% distinct(scientificnameaccepted) %>% dim() #  4805, nu 5545
-all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 94329, nu 97756
+all2Data %>% distinct(scientificnameaccepted) %>% dim() #  4805, toen 5545, nu 6332 (incl Algaebase)
+all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 94329, toen 97756, nu 97766 (incl Algaebase)
 
