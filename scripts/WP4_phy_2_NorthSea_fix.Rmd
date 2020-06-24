@@ -62,7 +62,7 @@ phy_spec_trait <- read_delim(file.path("../data/derived_data/phy_spec_traits.csv
 
 # Join these two species files, so that we have the traits from Worms in our species list
 phy_spec_new <- phy_spec %>%
-  left_join(., phy_spec_v1, by = "scientificnameaccepted")
+  left_join(., phy_spec_trait, by = "scientificnameaccepted")
 
 # Write csv
 write.csv(phy_spec_new, file.path("../data/derived_data/phy_spec_new.csv"), row.names = FALSE)

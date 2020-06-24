@@ -156,7 +156,7 @@ datasetids %>% View
 ## 2 - DOUBT, INSPECT 
 ## 3 - NOT CONTAINING PHYTOPLANKTON, NO DOWNLOAD
 
-currentversion = "allDatasets_modified_2020-06-22.csv"
+currentversion = "allDatasets_modified_2020-06-24.csv"
 
 datasetids_modified <- read_delim(file.path(dataDir, currentversion), delim = ";")
 

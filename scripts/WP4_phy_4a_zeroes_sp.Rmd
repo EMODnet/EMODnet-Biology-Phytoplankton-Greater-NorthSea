@@ -27,9 +27,9 @@ require(tidyverse)
 require(rworldxtra)
 
 # Load phy data set from working directory
-dataDir <- "data/derived_data/"
-load(file.path(dataDir, "phy_sp.Rdata"))
-#load(file.path("../data/derived_data/phy_sp.Rdata"))
+#dataDir <- "data/derived_data/"
+#load(file.path(dataDir, "phy_sp.Rdata"))
+load(file.path("../data/derived_data/phy_sp.Rdata"))
 # Remove the duplicates that have the same location and time of sampling (between different datasets)
 phy_sp <- phy_sp %>%
   select(aphiaid, scientificnameaccepted, date, datasetID, abbr, mrgid, eventid, month, year, season, xUTM, yUTM, occurrence) 
@@ -122,13 +122,12 @@ dbs_zero <- phy_c %>%
   slice(sort(c(dup_zero, dup_zero-1))) 
 
 # Write this out in a csv. To check for later purposes.
-duplDir <- "product/dupl/"
+#duplDir <- "../product/dupl/"
 
 if(length(dbs_zero$occurrence) > 0){
     
     write.csv(dbs_zero, 
-              paste0(duplDir, 
-                     "Dupl_", 
+              paste0("../product/dupl/Dupl_", 
                      params$targetSpecies, " ", 
                      params$begin, "-", params$end, ".csv"), 
               row.names = FALSE)
@@ -147,9 +146,9 @@ phy_c$middleXgrid <- grconv$middleXgrid
 phy_c$middleYgrid <- grconv$middleYgrid
   
 # Create a csv file for Leuven to interpolate
-csv_Dir <- "product/csv_files/"
+#csv_Dir <- "product/csv_files/"
   
-write.csv(phy_c, paste0(csv_Dir, params$targetSpecies, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
+write.csv(phy_c, paste0("../product/csv_files/", params$targetSpecies, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
 
 # #############################################################################
 # calculate time-series and effort per season

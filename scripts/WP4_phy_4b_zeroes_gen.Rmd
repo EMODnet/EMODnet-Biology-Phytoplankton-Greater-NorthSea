@@ -25,9 +25,10 @@ knitr::opts_chunk$set(fig.pos = 'H')
 require(tidyverse)
 require(rworldxtra)
 
-dataDir <- "data/derived_data/"
 # Load phy data set from working directory
-load(file.path(dataDir, "phy_gen.Rdata"))
+#dataDir <- "data/derived_data/"
+#load(file.path(dataDir, "phy_gen.Rdata"))
+load(file.path("../data/derived_data/phy_gen.Rdata"))
 
 ```
 
@@ -49,7 +50,6 @@ completeZeros_gen <- function(df, gen, year){
     filter(genus == gen) %>%
     ungroup()
 }
-
 
 # Function returns a named list containing the grid numbers corresponding to the 
 # coordinates of the input, as well as the parameters of the transformation that 
@@ -77,7 +77,6 @@ time_effort <- function(df) {
     mutate(rel_abun = positives/effort_per_season) %>% ungroup() %>%
     mutate(season = factor(season, levels = rev(c("autumn", "summer", "spring", "winter")))) 
 }
-
 
 # Create dataset for effort plot
 effort_function <- function(df, tax_level){
@@ -118,13 +117,12 @@ dbs_zero_g <- phy_c_g %>%
   slice(sort(c(dup_zero_g, dup_zero_g-1))) 
 
 # Write this out in a csv. To check for later purposes.
-duplDir <- "product/dupl/"
+#duplDir <- "../product/dupl/"
 
-if(length(dbs_zero_g$occurrence) > 0){
+if(length(dbs_zero$occurrence) > 0){
     
     write.csv(dbs_zero, 
-              paste0(duplDir, 
-                     "Dupl_", 
+              paste0("../product/dupl/Dupl_", 
                      params$targetGen, " ", 
                      params$begin, "-", params$end, ".csv"), 
               row.names = FALSE)
@@ -143,9 +141,9 @@ phy_c_g$middleXgrid <- grconv$middleXgrid
 phy_c_g$middleYgrid <- grconv$middleYgrid
   
 # Create a csv file for Leuven to interpolate
-csv_Dir <- "product/csv_files/"
+#csv_Dir <- "product/csv_files/"
   
-write.csv(phy_c, paste0(csv_Dir, params$targetGen, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
+write.csv(phy_c, paste0("../product/csv_files/", params$targetGen, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
 
 # #############################################################################
 # calculate time-series and effort per season
