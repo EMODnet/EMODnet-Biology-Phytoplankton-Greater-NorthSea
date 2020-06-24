@@ -12,7 +12,7 @@ params:
   gridX: 35000
   gridY: 35000
   borderx_min: -800000
-  borderx_max: 1250000
+  borderx_max: 1070000
   bordery_min: 5250000
   bordery_max: 6950000
 ---
@@ -118,17 +118,17 @@ dbs_zero_g <- phy_c_g %>%
   slice(sort(c(dup_zero_g, dup_zero_g-1))) 
 
 # Write this out in a csv. To check for later purposes.
-#path_dup = "p:/emodnet_biology/dataproducts/phytoplankton/obisdata/duplicates/"
+duplDir <- "product/dupl/"
 
-#if(length(dbs_zero_g$occurs) > 0){
-#    
-#    write.csv(dbs_zero_g, 
-#              paste0(path_dup, 
-#                     "Dupl_", 
-#                     params$targetGen, " ", 
-#                     params$begin, "-", params$end, ".csv"), 
-#              row.names = FALSE)
-#  }   
+if(length(dbs_zero_g$occurrence) > 0){
+    
+    write.csv(dbs_zero, 
+              paste0(duplDir, 
+                     "Dupl_", 
+                     params$targetGen, " ", 
+                     params$begin, "-", params$end, ".csv"), 
+              row.names = FALSE)
+  }   
 
 # Here we remove the duplicates that have the same location and time in different datasets 
 phy_c_g <- phy_c_g %>%
@@ -143,8 +143,9 @@ phy_c_g$middleXgrid <- grconv$middleXgrid
 phy_c_g$middleYgrid <- grconv$middleYgrid
   
 # Create a csv file for Leuven to interpolate
-#path_out = "p:/emodnet_biology/dataproducts/phytoplankton/obisdata/csv-files/"
-#write.csv(phy_c_g, paste0(path_out, params$targetGen, "-", params$begin, "-", params$end, ".csv"), row.names = FALSE)
+csv_Dir <- "product/csv_files/"
+  
+write.csv(phy_c, paste0(csv_Dir, params$targetGen, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
 
 # #############################################################################
 # calculate time-series and effort per season

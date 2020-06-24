@@ -12,7 +12,7 @@ params:
   gridX: 35000
   gridY: 35000
   borderx_min: -800000
-  borderx_max: 1250000
+  borderx_max: 1070000
   bordery_min: 5250000
   bordery_max: 6950000
 ---
@@ -122,17 +122,17 @@ dbs_zero <- phy_c %>%
   slice(sort(c(dup_zero, dup_zero-1))) 
 
 # Write this out in a csv. To check for later purposes.
-#path_dup = "p:/emodnet_biology/dataproducts/phytoplankton/obisdata/duplicates/"
+duplDir <- "product/dupl/"
 
-#if(length(dbs_zero$occurs) > 0){
+if(length(dbs_zero$occurrence) > 0){
     
-#    write.csv(dbs_zero, 
-#              paste0(path_dup, 
-#                     "Dupl_", 
-#                     params$targetSpecies, " ", 
-#                     params$begin, "-", params$end, ".csv"), 
-#              row.names = FALSE)
-#  }   
+    write.csv(dbs_zero, 
+              paste0(duplDir, 
+                     "Dupl_", 
+                     params$targetSpecies, " ", 
+                     params$begin, "-", params$end, ".csv"), 
+              row.names = FALSE)
+  }   
 
 # Here we remove the duplicates that have the same location and time in different datasets 
 phy_c <- phy_c %>%
@@ -147,9 +147,9 @@ phy_c$middleXgrid <- grconv$middleXgrid
 phy_c$middleYgrid <- grconv$middleYgrid
   
 # Create a csv file for Leuven to interpolate
-#path_out = "p:/emodnet_biology/dataproducts/phytoplankton/obisdata/csv-files/"
+csv_Dir <- "product/csv_files/"
   
-#write.csv(phy_c, paste0(path_out, params$targetSpecies, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
+write.csv(phy_c, paste0(csv_Dir, params$targetSpecies, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
 
 # Determine height for first plot
 height_plot1 <- (2+0.5*length(unique(phy_c$datasetID))) # Size of height plot 1
