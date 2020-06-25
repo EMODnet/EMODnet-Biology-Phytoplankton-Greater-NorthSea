@@ -119,9 +119,9 @@ dbs_zero_g <- phy_c_g %>%
 # Write this out in a csv. To check for later purposes.
 #duplDir <- "../product/dupl/"
 
-if(length(dbs_zero$occurrence) > 0){
+if(length(dbs_zero_g$occurrence) > 0){
     
-    write.csv(dbs_zero, 
+    write.csv(dbs_zero_g, 
               paste0("../product/dupl/Dupl_", 
                      params$targetGen, " ", 
                      params$begin, "-", params$end, ".csv"), 
@@ -143,7 +143,7 @@ phy_c_g$middleYgrid <- grconv$middleYgrid
 # Create a csv file for Leuven to interpolate
 #csv_Dir <- "product/csv_files/"
   
-write.csv(phy_c, paste0("../product/csv_files/", params$targetGen, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
+write.csv(phy_c_g, paste0("../product/csv_files/", params$targetGen, "-",  params$begin, "-", params$end, ".csv"), row.names = FALSE)
 
 # #############################################################################
 # calculate time-series and effort per season
