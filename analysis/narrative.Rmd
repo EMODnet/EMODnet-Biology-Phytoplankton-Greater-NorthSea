@@ -1,23 +1,10 @@
 ---
-title: "North Sea phytoplankton"
-subtitle: "Narrative"
+title: "Greater North Sea mixoplankton"
+subtitle: "A first analysis"
 author: "Willem Stolte"
 date: "17/06/2020"
-output: html_document
+output: html_notebook
 ---
-
-```{css, echo = F}
-.box {
-  padding: 1em;
-  background: white;
-  color: blue;
-  border: 2px solid orange;
-  border-radius: 10px;
-}
-.center {
-  text-align: center;
-}
-```
 
 
 ```{r setup, include=FALSE}
@@ -49,19 +36,6 @@ EMODnetMapNormalStyle <-
 
 
 
-
-:::: {.box data-latex=""}
-::: {.center data-latex=""}
-Objectives
-:::
-
-1. Extract phytoplankton observations for Greater North Sea from EMODnet Biology
-1. Automize this extraction where possible
-1. Visualize the data for inspection
-1. Determine absence of phytoplankton species in the Greater North Sea
-1. Produce a high quality data product containing both occurence and absence of phytoplanton in Greater North Sea
-::::
-
 # Introduction
 
 ## Documentation
@@ -79,7 +53,7 @@ Data from 1995 until now are considered for the current product.
 The regions that were selected were assembled from the intersection of the IHO regions and the EEZ from the different countries. These subregions have ID's that can be used in the WFS query to the EMODnet Biology database.
 
 ```{r mapGreaterNorthSea, message=F, warning=F, comment=F, out.width="50%"}
-regions <- sf::st_read(quiet = T, dsn = "../data/derived_data/simplified_greater_north_sea-selection_from_eez-iho_v4.geojson")
+regions <- sf::st_read(quiet = T, dsn = "../data/derived_data/greater_north_sea-selection_from_eez-iho_v4.geojson")
 regions %>% ggplot() +
   geom_sf(fill = "blue", color = "white") +
   geom_sf_text(aes(label = mrgid), size = 2, color = "white") +
@@ -95,14 +69,10 @@ For each of these subregions, data extraction was done in a two-step approach.
 1. Extract phytoplankton data by selecting only observations linkted to the trait "phytoplankton".
 1. The unique datasets obtained in the first steps were inspected, and suitable datasets, which were expected to contain phytoplankton, were selected. The suitable datasets were then downloaded completely (without selection for traits)
 
-The reason for these two steps is that not all phytoplankton have been given traits yet. Potentially, many species would not been selected in the first query
-
-
-
 
 ## Extraction of complete relevant datasets
 
-Extracting all relevant datasets will result in more observations, but part of the observations may be of non-phytoplankton organisms. After cleaning this set from non-phytoplankton, it is expected that all phytoplankton observations remain, also those which at the moment do not have the trait attribute "phytoplankton".
+Data were extracted from EMODnet Biology via WFS, using the requestData.R script. These data are stored locally and taken into this script here. 
 
 
 ```{r, message=F, warning=F}
@@ -110,7 +80,9 @@ Extracting all relevant datasets will result in more observations, but part of t
 load(file.path(dataDir, "all2Data.Rdata"))
 ```
 
-This query resulted in `r length(all2Data$id)` observations
+In total, this resulted in `r length(all2Data$id)` observations
+
+Per subregion, the number of observations/km^2^ looks like this:
 
 ```{r, message=F, warning=F}
 regionN <- all2Data %>%
@@ -125,9 +97,17 @@ regions %>% right_join(regionN, by = c(mrgid = "mrgid")) %>%
 ```
 
 
-
-
 ## Join with trophic mode table
+
+Schneider et al. (submitted) has defined trophic mode for about 1500 species of plankton. A first subdivision is in 
+
+* phytoplankton - phototrophic, no phagotrophy known
+* mixoplankton - capable of phototrophy and phagotrophy
+* zooplankton - phagotrophic, no phototrophy known.
+
+Mixoplankton is subdevided in different classes, but at this moment, we will not use this. 
+
+
 
 ```{r}
 trophy <- read_delim("p:/11200463-mixitin-mixotrophs/20.Data/project4_dataPaperTrophy/p7List_All.csv", delim = ";", guess_max = 10000)
@@ -158,6 +138,9 @@ trophyData <- all2Data %>%
 
 ```
 
+## Fraction of mixoplankton (first results)
+
+As a first approach, the fraction of mixoplankton/(phytoplankto + mixoplankton) is plotted on a map:
 
 
 ```{r trophyMap, fig.width=10, fig.height=10, out.width="100%"}
@@ -184,6 +167,45 @@ ggplot() +
   facet_wrap(~ season) +
   EMODnetMapCleanStyle
 ```
+
+
+This first analysis shows highest fraction of mixoplankton in summer. Even in summer, the fraction of mixoplankton is still low along the Dutch and Belgian coast. This is in line with Schneider et al. (submitted_1). It is also in line with a general idea that mixoplankton, at least the constitutive mixoplankton, appear in post-bloom clear water conditions, which in the North Sea are associated with offshore, possibly stratified waters. 
+
+
+## Limitations of this analysis
+
+### Incomplete classification
+
+At the moment, only 1500 species could be automatically classified as either phytoplankton or mixoplankton. This means that we are missing a number of species in this analysis, because the data contain more than 5000 species names. Part of those may be heterotrophic, which does not influence the maps above. If we assume that the fractioin of mixoplankton is not very different in these unknown species as compared to the known species, the bias is not very strong. 
+
+```{r}
+all2Data %>% 
+  mutate(AphiaID = sub("http://marinespecies.org/aphia.php[?]p=taxdetails&id=", "", aphiaid, )) %>% 
+  full_join(trophy, by = c(AphiaID = "AphiaID")) %>% 
+  select(
+    mrgid, datasetID, datecollected, decimallongitude, decimallatitude,
+    scientificname, AphiaID, Trophy, typeMX
+  ) %>%
+  group_by(Trophy) %>%
+  summarize(`nr of observations` = n()) %>%
+  ggplot(aes(Trophy, `nr of observations`)) + geom_col(aes(fill = Trophy))
+```
+
+
+
+### Bias in species per dataset
+
+Not all datasets address the same species. For example, the Plankton Recorder data contain species that are retained on a 60 µm filter, which excludes a number of small species. A possible way to get a better grip of the effect of this bias is to only regards species that occur in all (or most) datasets. This still needs to be done. 
+
+
+ 
+
+
+
+
+
+
+
 
 
 
