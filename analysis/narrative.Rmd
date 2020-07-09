@@ -151,7 +151,8 @@ Extracting all relevant datasets will result in more observations, but part of t
 
 ```{r, message=F, warning=F}
 
-all2Data <- read_delim(file.path(dataDir, "all2Data.csv"), delim = ";")
+# all2Data <- read_delim(file.path(dataDir, "all2Data.csv"), delim = ";")
+load(file.path(dataDir, "all2Data.Rdata"))
 ```
 
 This query resulted in `r length(all2Data$id)` observations

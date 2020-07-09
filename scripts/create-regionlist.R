@@ -6,6 +6,9 @@
 # Last changes:
 # 
 # 2000-06-22
+# 
+# Marine region layer adapted to newest version
+# 
 # geographical area adapted to EEA greater North Sea and Celtic Seas
 # Now also contains Skagerrak and large part of Kattegat
 # Documented in script "create-regionlist.R"
@@ -23,15 +26,15 @@ require(sf)
 # They live in the layer MarineRegions:eez_iho
 # intersection eez and iho regions
 # 
-# View
+# View  (takes a whee while to load the layer with regions..)
 
-leaflet() %>% addTiles() %>%
-  addWMSTiles(
-    baseUrl = "http://geo.vliz.be/geoserver/wms?",
-    layers = "MarineRegions:eez_iho",
-    options = WMSTileOptions(format = "image/png", transparent = TRUE),
-    attribution = "MarineRegions.org"
-  )
+# leaflet() %>% addTiles() %>%
+#   addWMSTiles(
+#     baseUrl = "http://geo.vliz.be/geoserver/wms?",
+#     layers = "MarineRegions:eez_iho",
+#     options = WMSTileOptions(format = "image/png", transparent = TRUE),
+#     attribution = "MarineRegions.org"
+#   )
 
 # to look at the complete layer
 # layerurl <- "http://geo.vliz.be/geoserver/MarineRegions/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=MarineRegions:eez_iho&outputFormat=application/json"
