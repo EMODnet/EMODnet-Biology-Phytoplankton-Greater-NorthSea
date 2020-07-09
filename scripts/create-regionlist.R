@@ -57,3 +57,4 @@ roi %>%
 roi %>% st_drop_geometry() %>%
   write_delim("data/derived_data/regions.csv", delim = ";")
 
+roi %>% st_simplify(dTolerance = 0) %>% st_write("data/derived_data/simplified_greater_north_sea-selection_from_eez-iho_v4.geojson")
