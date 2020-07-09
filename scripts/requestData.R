@@ -13,7 +13,7 @@
 # Read function changed to httr::RETRY
 # In case of server failure, the request is resent 2 more times, with increasing time interval
 # # 
-# ======================================================================================
+# ======================================================================6================
 
 
 
@@ -36,8 +36,10 @@ roi <- read_delim(file.path(dataDir, "regions.csv"), delim = ";")
 
 # read geographic layers for plotting
 # Takes long time to read layer below !!!
+
 layerurl <- "http://geo.vliz.be/geoserver/MarineRegions/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=MarineRegions:eez_iho&outputFormat=application/json"
 regions <- sf::st_read(layerurl)
+
 # check by plotting
 regions %>% filter(mrgid %in% roi$mrgid) %>%
   ggplot() +
@@ -215,11 +217,13 @@ write_delim(doubt_species, file.path(dataDir, "doubt_species.csv"), delim = ";")
 
 
 
-# These we are certain of not containing relevant phytoplankton data
-notOKdatasets <- datasetids_modified$datasetid[datasetids_modified$keep == "3"]
 
 
 #== Download relevant datasets per region, no trait selection critera =======================
+
+# These we are certain of not containing relevant phytoplankton data
+notOKdatasets <- datasetids_modified$datasetid[datasetids_modified$keep == "3"]
+
 
 getDatasets <- datasetids %>%
   filter(!datasetid %in% notOKdatasets)
@@ -288,7 +292,7 @@ all2Data <- lapply((filelist), function(x)
 # mutate(mrgid = sub("region", "", mrgid))
 
 write_delim(all2Data, file.path(dataDir, "all2Data.csv"), delim = ";")
-save(all2Data, file = "all2Data.Rdata")
+save(all2Data, file = file.path(dataDir, "all2Data.Rdata"))
 
 all2Data %>% distinct(scientificnameaccepted) %>% dim() #  4805, toen 5545, nu 6332 (incl Algaebase)
 all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 94329, toen 97756, nu 97766 (incl Algaebase)

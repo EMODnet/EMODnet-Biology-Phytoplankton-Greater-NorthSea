@@ -19,6 +19,15 @@ output: html_document
 }
 ```
 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align="center")
+require(sf)
+require(tidyverse)
+require(lubridate)
+dataDir <- "../data/derived_data"
+```
+
 ```{r styleDef, echo = T}
 EMODnetMapCleanStyle <- theme_minimal() +
   theme(axis.text = element_blank(),
@@ -38,13 +47,6 @@ EMODnetMapNormalStyle <-
 
 ```
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.align="center")
-require(sf)
-require(tidyverse)
-require(lubridate)
-dataDir <- "../data/derived_data"
-```
 
 
 
@@ -76,8 +78,8 @@ Data from 1995 until now are considered for the current product.
 
 The regions that were selected were assembled from the intersection of the IHO regions and the EEZ from the different countries. These subregions have ID's that can be used in the WFS query to the EMODnet Biology database.
 
-```{r mapGreaterNorthSea, message=F, warning=F, comment=F}
-regions <- sf::st_read(quiet = T, dsn = "../data/derived_data/greater_north_sea-selection_from_eez-iho-union-v2.geojson", layer = "greater_north_sea-selection_from_eez-iho-union-v2") %>% st_simplify()
+```{r mapGreaterNorthSea, message=F, warning=F, comment=F, out.width="50%"}
+regions <- sf::st_read(quiet = T, dsn = "../data/derived_data/simplified_greater_north_sea-selection_from_eez-iho_v4.geojson")
 regions %>% ggplot() +
   geom_sf(fill = "blue", color = "white") +
   geom_sf_text(aes(label = mrgid), size = 2, color = "white") +
@@ -95,72 +97,6 @@ For each of these subregions, data extraction was done in a two-step approach.
 
 The reason for these two steps is that not all phytoplankton have been given traits yet. Potentially, many species would not been selected in the first query
 
-While doing this, at least one dataset that contains phytoplankton was not selected. This is the Sylt-Romo dataset for phytoplankton. This dataset appeared to be archived, and could not be downloaded via WFS. 
-
-## Extraction by trait
-
-```{r readDatasetTable, message=F}
-allDatasets <- read_delim(file.path(dataDir, "allDatasets.csv"), delim = ";", )
-allData <- read_delim(file.path(dataDir, "allDataExtra.csv"), delim = ";")
-```
-
-
-This query resulted in `r length(allData$id)` observations from `r length(allDatasets$datasetid)` different datasets. Of these datasets that were specifically related to zooplankton or not to pelagic sampling were excluded. 
-
-
-```{r, message=F, warning=F}
-regionN <- allData %>%
-  group_by(mrgid) %>% summarize(n = n()) %>% ungroup() %>%
-  mutate(mrgid = as.numeric(mrgid))
-
-regions %>% right_join(regionN, by = c(mrgid = "mrgid")) %>%
-  mutate(n_km2 = 1e6*n/area_m2) %>%
-  ggplot() +
-  geom_sf(aes(fill = n_km2)) +
-  scale_fill_viridis_c(limits = c(0.2, 1))
-
-```
-
-
-
-
-
-```{r datasetTable}
-knitr::kable(allDatasets)
-```
-
-
-
-Datasets that, from the title and information on IMIS, do not contain phytoplankton were:
-
-```{r}
-allDatasets %>% filter
-knitr::kable(allDatasets[allDatasets$datasetid %in% c(787, 4412, 5759, 2756, 4687),]$name)
-```
-
-```{r cleanup}
-rm(allDataExtra)
-```
-
-
-
-
-
-
-
-
-
-
-Datasets that we think are questionable are 
-```{r}
-allDatasets %>% 
-  filter(datasetid %in% c(1947, 2, 4438, 5666)) %>% 
-  select(name) %>% 
-  knitr::kable()
-```
-and were not downloaded for the moment. 
-
-All other datasets were judged to be interesting enough for this analysis and were downloaded completely. 
 
 
 
@@ -170,7 +106,6 @@ Extracting all relevant datasets will result in more observations, but part of t
 
 
 ```{r, message=F, warning=F}
-
 # all2Data <- read_delim(file.path(dataDir, "all2Data.csv"), delim = ";")
 load(file.path(dataDir, "all2Data.Rdata"))
 ```
@@ -189,27 +124,19 @@ regions %>% right_join(regionN, by = c(mrgid = "mrgid")) %>%
   scale_fill_viridis_c()
 ```
 
-```{r cleanup2}
-# rm(all2Data)
-```
 
-## Filter only phytoplankton species.
 
-```{r}
-# Phy_aphiaid <- read_delim("")
-# allPhyData <- all2Data %>%
-#   filter(aphiaid %in% )
-```
 
 ## Join with trophic mode table
 
 ```{r}
 trophy <- read_delim("p:/11200463-mixitin-mixotrophs/20.Data/project4_dataPaperTrophy/p7List_All.csv", delim = ";", guess_max = 10000)
+Sys.sleep(10)
 ```
 
 
 
-```{r, message=F, warning=F, eval=F}
+```{r, message=F, warning=F}
 trophyData <- all2Data %>% 
   mutate(AphiaID = sub("http://marinespecies.org/aphia.php[?]p=taxdetails&id=", "", aphiaid, )) %>% 
   full_join(trophy, by = c(AphiaID = "AphiaID")) %>% 
@@ -233,20 +160,29 @@ trophyData <- all2Data %>%
 
 
 
-```{r trophyMap, fig.width=14}
-trophyData %>%
+```{r trophyMap, fig.width=10, fig.height=10, out.width="100%"}
+plottrophy <- trophyData %>%
   group_by(decimallongitude, decimallatitude, Trophy, season) %>%
   summarize(n = n()) %>%
   filter(Trophy %in% c("mixotroph", "phototroph")) %>%
   spread(Trophy, n) %>%
   mutate(fMix = mixotroph/(mixotroph + phototroph)) %>%
-  drop_na(fMix) %>%
-  ggplot(aes(x = decimallongitude, y = decimallatitude, z=fMix)) +
-    stat_summary2d(fun=mean, binwidth = c(0.5,0.5)) +
-  scale_fill_viridis_c(limits = c(0,1)) +
-  EMODnetMapNormalStyle +
-  facet_wrap(~ season)
+  drop_na(fMix)
 
+require(rworldxtra)
+data(countriesHigh)
+world <- st_as_sf(countriesHigh) %>% 
+  filter(REGION == "Europe") %>%
+  filter(ADMIN %in% c("Denmark", "Germany", "Netherlands", "Belgium", "United Kingdom", "France", "Norway", "Sweden")) %>%
+  select(ADMIN)
+
+ggplot() +
+  stat_summary2d(data = plottrophy, aes(x = decimallongitude, y = decimallatitude, z=fMix), fun=mean, binwidth = c(0.5,0.5)) +
+  geom_sf(data = world, fill = "grey", color = "white", alpha = 0.5) +
+  scale_fill_viridis_c() +
+  coord_sf(xlim = c(-15, 15), ylim = c(45, 65)) +
+  facet_wrap(~ season) +
+  EMODnetMapCleanStyle
 ```
 
 
