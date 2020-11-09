@@ -76,6 +76,4 @@ The datasets included were:
 ...
 
 ## Citation
-
-Please cite this product as:
-*{{citation}}*
+Please cite this product as: *Willem Stolte, & Luuk van der Heijden (2020). Presence/Absence maps of phytoplankton in the Greater North Sea. Integrated data products created under the European Marine Observation Data Network (EMODnet) Biology project (EASME/EMFF/2017/1.3.1.2/02/SI2.789013), funded by the by the European Union under Regulation (EU) No 508/2014 of the European Parliament and of the Council of 15 May 2014 on the European Maritime and Fisheries Fund*
