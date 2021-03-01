@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 require(robis)
 require(lubridate)
 require(tidyverse)
-
+select <- dplyr::select
 ```
 
 # Here we load the data that has been extracted from the OBIS server. 
@@ -57,15 +57,15 @@ phy_spec <- phy_data %>%
   distinct(scientificnameaccepted, .keep_all = TRUE) %>%
   select(scientificnameaccepted, aphiaidaccepted, phylum, scientificnameauthorship) 
 
-# Load the file including scientificnames that have the trait "phytoplankton" assigned
-phy_spec_trait <- read_delim(file.path("../data/derived_data/phy_spec_traits.csv"), delim = ";")
+# # Load the file including scientificnames that have the trait "phytoplankton" assigned
+# phy_spec_trait <- read_delim(file.path("../data/derived_data/phy_spec_traits.csv"), delim = ";")
 
 # Join these two species files, so that we have the traits from Worms in our species list
-phy_spec_new <- phy_spec %>%
-  left_join(., phy_spec_trait, by = "scientificnameaccepted")
+phy_spec_new <- phy_spec #%>%
+  # left_join(., phy_spec_trait, by = "scientificnameaccepted")
 
 # Write csv
-write.csv(phy_spec_new, file.path("../data/derived_data/phy_spec_new.csv"), row.names = FALSE)
+write.csv(phy_spec_new, file.path("../data/derived_data/phy_spec_new2.csv"), row.names = FALSE)
 
 # Exclude the species that are not phytoplankton, they are summed in this list. This is specific for the North Sea:
 phy_corrected <- read_delim(file.path("../data/derived_data/phy_spec_new_corrected.csv"), delim = ";")
@@ -117,6 +117,7 @@ clean_phy <- clean_phy %>%
 # Extract the aphiaid from aphiaidaccepted
 # Duplicates that occurred due to two sample moments on one day
 # #############################################################################
+
 fix_phy <- clean_phy %>%
   distinct(aphiaidaccepted, datasetid, datecollected, decimallatitude, decimallongitude, .keep_all = TRUE) %>%       # Select distinct objects
   filter(!datecollected %in% NA) %>%                                                                                 # Remove obs. without date (9)
@@ -132,7 +133,6 @@ fix_phy <- clean_phy %>%
 
 # Save file
 save(fix_phy, file = "../data/derived_data/fix_phy.Rdata")
-
 ```
 
 ## Reproducibility
@@ -146,6 +146,5 @@ sessioninfo::session_info()
 
 # repository
 git2r::repository()
-
 ```
 

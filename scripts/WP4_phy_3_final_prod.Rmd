@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 require(tidyverse)
 require(sf)
+select <- dplyr::select
 ```
 
 ## We now have the dataset we want to work with. These datasets, however, some things still have to be adjusted. 
