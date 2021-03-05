@@ -34,6 +34,7 @@ load(file.path("../data/derived_data/phy_sp.Rdata"))
 phy_sp <- phy_sp %>%
   select(aphiaid, scientificnameaccepted, date, datasetID, abbr, mrgid, eventid, month, year, season, xUTM, yUTM, occurrence) 
 
+# phy_sp %>% sf::st_as_sf(coords = c('xUTM','yUTM'), crs = 32631) %>% sf::st_transform(4326) %>% sf::st_bbox()
 ```
 
 ```{r functions needed for analysis, include=FALSE, warning=FALSE}

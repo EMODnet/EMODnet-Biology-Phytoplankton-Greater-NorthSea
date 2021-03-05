@@ -28,6 +28,9 @@ select <- dplyr::select
 # #############################################################################
 load(file.path("../data/derived_data/fix_phy.Rdata"))
 
+# bbox
+# fix_phy %>% sf::st_as_sf(coords = c('decimallongitude','decimallatitude'), crs = 4326) %>% sf::st_bbox()
+
 # 1. Seasons have to be added so that we can use them later. 
 # 2. Occurrence has to numerical
 # 3. Column with species names has to be extracted from scientificnameaccepted
@@ -76,6 +79,10 @@ phy_gen <- phy %>%
 # Save phy files
 save(phy_sp, file = "../data/derived_data/phy_sp.Rdata")
 save(phy_gen, file = "../data/derived_data/phy_gen.Rdata")
+
+# bbox
+# phy_gen %>% sf::st_as_sf(coords = c('xUTM','yUTM'), crs = 32631) %>% sf::st_transform(4326) %>% sf::st_bbox()
+
 
 ```
 
