@@ -15,6 +15,8 @@ dataDir <- "data/derived_data/"
 # Load phy data set from working directory
 load(file.path(dataDir, "phy_sp.Rdata"))
 
+phy_sp %>% sf::st_as_sf(coords = c('xUTM','yUTM'), crs = 32631) %>% sf::st_transform(4326) %>% sf::st_bbox()
+
 orderedSpeciesList <- phy_sp %>% ungroup() %>%
   group_by(scientificnameaccepted) %>%
   summarise(n = n()) %>% arrange(-n) %>% head(100) %>%  unlist() %>% unname()
