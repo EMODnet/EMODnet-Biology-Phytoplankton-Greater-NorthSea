@@ -19,6 +19,7 @@
 require(leaflet)
 require(tidyverse)
 require(sf)
+select <- dplyr::select
 
 # Geographic search
 # 
@@ -50,7 +51,7 @@ roi %>% select(mrgid) %>% plot()
 roi %>%
   ggplot() +
   geom_sf(fill = "blue", color = "white") +
-  geom_sf_text(aes(label = mrgid), size = 2.5)
+  geom_sf_text(aes(label = mrgid), color = "darkgrey", size = 4, check_overlap = T)
   # coord_sf(st_bbox(roi)[c(1,3)], st_bbox(roi)[c(2,4)], expand = T)
 
 

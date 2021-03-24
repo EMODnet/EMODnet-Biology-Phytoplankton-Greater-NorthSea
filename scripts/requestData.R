@@ -12,14 +12,8 @@
 # 
 # Read function changed to httr::RETRY
 # In case of server failure, the request is resent 2 more times, with increasing time interval
-# # 
-# ======================================================================6================
-
-
-
-
-
-
+# 
+#=======================================================================================
 
 require(sf)
 require(tidyverse)
@@ -28,11 +22,8 @@ require(httr)
 downloadDir <- "data/raw_data"
 dataDir <- "data/derived_data"
 
-
-
 # read selected geographic layers for downloading
 roi <- read_delim(file.path(dataDir, "regions.csv"), delim = ";")
-
 
 # read geographic layers for plotting
 # Takes long time to read layer below !!!
@@ -294,6 +285,7 @@ all2Data <- lapply((filelist), function(x)
 write_delim(all2Data, file.path(dataDir, "all2Data.csv"), delim = ";")
 save(all2Data, file = file.path(dataDir, "all2Data.Rdata"))
 
-all2Data %>% distinct(scientificnameaccepted) %>% dim() #  4805, toen 5545, nu 6332 (incl Algaebase)
-all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 94329, toen 97756, nu 97766 (incl Algaebase)
+# check some things
+all2Data %>% distinct(scientificnameaccepted) %>% dim() #  4805, then 5545, now 6332 (incl Algaebase)
+all2Data %>% distinct(decimallatitude, decimallongitude) %>% dim() # 94329, then 97756, now 97766 (incl Algaebase)
 
