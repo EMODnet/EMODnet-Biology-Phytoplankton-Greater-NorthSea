@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The project aims to produce comprehensive data product of the occurence and absence of (phyto)plankton species. As a basis, data from EMODnet Biology are used. The selection of relevant datasets is optimized in order to find all planktonic species, and exclude all species that are not planktonic. The occurences from EMODnet Biology were complemenented with absence data assuming fixed species lists within each dataset and year. The products are presented as maps of the distribution of the 100 most common species of (phyto)plankton in the Greater North Sea. 
+The project aims to produce comprehensive data products of the occurence and absence of (phyto)plankton species. As a basis, data from EMODnet Biology are used. The selection of relevant datasets is optimized in order to find all planktonic species, and exclude all species that are not planktonic. The occurences from EMODnet Biology were complemenented with absence data assuming fixed species lists within each dataset and year. The products are presented as maps of the distribution of the 100 most common species of (phyto)plankton in the Greater North Sea. 
 
 This product then is also used for interpolated maps, using the DIVA software. 
 
@@ -12,7 +12,11 @@ The aim is to cover the Greater North Sea. Subareas from the eez-iho layer in ma
 
 ![Map of regions](data/derived_data/regionsOfInterest.png)
 
+The regions were selected by manual procedure in QGIS from the GIS layer "MarineRegions:eez_iho" available via WFS via the EMODnet Biology geoserver. The selection was saved as GeoJSON in the project at "data/derived_data/simplified_greater_north_sea-selection_from_eez-iho_v4.geojson"
+
 ## Temporal coverage
+
+All available data from 1995 to current (2020-05-31) were used in this product.
 
 ## Directory structure
 
@@ -37,9 +41,9 @@ The aim is to cover the Greater North Sea. Subareas from the eez-iho layer in ma
 
 Raw data were downloaded from EMODnet Biology using WFS requests. This was done in two steps. 
 
-1. Per subregion, all observations of species with the trait "phytoplankton" or "Phytoplankton" were extracted. 
+1. For each subregion, all observations of species with the trait "phytoplankton" or "Phytoplankton" were extracted. 
 
-2. Because of uncertainties in extracting all phytoplankton species (due to absence of traits for example) all data was extracted for these datasets. Within these datasets phyla were selected that contain phytoplankton species, after which a manual selection was performed to filter out non-phytoplankton species also belonging to these phyla (e.g. macroalgae).
+2. Because of uncertainties in extracting all phytoplankton species (due to absence of traits for example) all data was extracted for every dataset that occurred in step 1. Because datasets could also contain non-phytoplankton, within the datasets phyla were selected that contain phytoplankton species, after which a manual selection was performed to filter out non-phytoplankton species also belonging to these phyla (e.g. macroalgae).
 
 The datasets included were:
 
@@ -68,10 +72,16 @@ The datasets included were:
 
 
 ```
-{{data_wfs_request}}
+wfs requests are described in the script "requestData.R"
 ```
 
 ## Analysis
+
+### Addition of zero values
+
+Within each combination of dataset and year, it was assumed that the potentially occuring species did not vary. For example, if a species was found within a dataset in March at a certain location, it was assumed that this species was always searched for. If in the same dataset, but at another location or at another time, this same species was not reported, it was assumed to be absent. This approach allows for variation in e.g. counting strategy or analyzing lab between years, where perhaps certain species were not looked for in a certain period. 
+
+For the 100 most abundant species this analysis was done, after which maps were produced with the probability of occurence of a certain species according to the fraction of presences devided by the total sampling effort (number of samples taken). The analyses was done an a course grid and a finer grid, for each season (winter, spring, summer, autumn)
 
 ...
 

@@ -14,6 +14,7 @@ packages(rworldxtra)
 packages(tidyverse)
 packages(shiny)
 packages(rgeos)
+select <- dplyr::select
 
 # Working directory
 dataDir <- "data/derived_data/"
@@ -36,14 +37,7 @@ for (ii in 1:length(unique(commonSpecies$scientificnameaccepted))){ #length(uniq
   targetSpecies <- unique(commonSpecies$scientificnameaccepted)[ii]    # Species to work with
   begin = 1995                                       # Range of years for plots
   end = 2020                                       
-  gridX <- 35000                                     # Size of gridcells (x)
-  gridY <- 35000                                     # Size of gridcells (y)
-  
-  # phy_c <- commonSpecies %>%
-  #   filter(year %in% begin:end) %>%
-  #   filter(scientificnameaccepted == targetSpecies) #%>%
-  #   #dplyr::select(occurrence)
-  
+
   if(length(commonSpecies$occurrence) > 0){
   
     # Create zeroes:
@@ -57,21 +51,21 @@ for (ii in 1:length(unique(commonSpecies$scientificnameaccepted))){ #length(uniq
       dplyr::filter(abbr %in% selectedDatasets) %>%
       group_by(abbr, year) %>%
       tidyr::complete(nesting(aphiaid, scientificnameaccepted),         # these will be completed, with their occurrence
-                      nesting(date, xUTM, yUTM, season),   # Combinations of these parameters are to be found
+                      nesting(date, decimallongitude, decimallatitude, season),   # Combinations of these parameters are to be found
                       fill = list(occurrence = 0)) %>% 
       ungroup() %>%
-      unite(date_xUTM_yUTM, date, xUTM, yUTM, remove = FALSE) %>%
+      unite(date_decimallongitude_decimallatitude, date, decimallongitude, decimallatitude, remove = FALSE) %>%
       filter(scientificnameaccepted == targetSpecies) %>%
       ungroup()
     
     # This df contains duplicates from different datasets that have the same location and time, which seems unlikely
     dup_zero <- phy_c %>% 
-      arrange(aphiaid, date, xUTM, yUTM, occurrence, season) %>%
+      arrange(aphiaid, date, decimallongitude, decimallatitude, occurrence, season) %>%
       select(-datasetID) %>%
       duplicated %>% which
     # Create the df with duplicates
     dbs_zero <- phy_c %>% 
-      arrange(aphiaid, date, xUTM, yUTM, occurrence, season) %>%
+      arrange(aphiaid, date, decimallongitude, decimallatitude, occurrence, season) %>%
       ungroup() %>%
       slice(sort(c(dup_zero, dup_zero-1))) 
     
@@ -89,30 +83,14 @@ for (ii in 1:length(unique(commonSpecies$scientificnameaccepted))){ #length(uniq
     
     # Here we remove the duplicates that have the same location and time in different datasets 
     phy_c <- phy_c %>%
-      distinct(aphiaid, scientificnameaccepted, date, xUTM, yUTM, year, season, occurrence, .keep_all = TRUE) %>%
-      select(datasetID, abbr, year, aphiaid, scientificnameaccepted,date, xUTM, yUTM, season, eventid, mrgid, month, occurrence)
-    
-    # #############################################################################
-    # Include the gridnr in the dataframe
-    # #############################################################################
-    grconv <- co2gr(phy_c$xUTM, phy_c$yUTM, gridX, gridY)  
-    phy_c$gridnr <- grconv$gridnr
-    phy_c$middleXgrid <- grconv$middleXgrid
-    phy_c$middleYgrid <- grconv$middleYgrid
+      distinct(aphiaid, scientificnameaccepted, date, decimallongitude, decimallatitude, year, season, occurrence, .keep_all = TRUE) %>%
+      select(datasetID, abbr, year, aphiaid, scientificnameaccepted,date, decimallongitude, decimallatitude, season, eventid, mrgid, month, occurrence)
     
     # Create a csv file for Leuven to interpolate
     #csv_Dir <- "product/csv_files/"
     
     write.csv(phy_c, paste0("product/csv_files/", targetSpecies, "-",  begin, "-", end, ".csv"), row.names = FALSE)
     
-   #  # What Rmarkdown to use and where to render
-   # render_report(
-   #    targetSpecies = targetSpecies,
-   #    begin = begin,
-   #    end = end,
-   #    gridX = gridX,
-   #    gridY = gridY
-   #  )
    }  else next()   
   
 }
@@ -137,14 +115,7 @@ for (ii in 1:length(unique(commonGenus$genus))){ #length(unique(phy_gen$genus))
   targetGen <- unique(commonGenus$genus)[ii]    # Species to work with
   begin = 1995                                       # Range of years for plots
   end = 2020                                       
-  gridX <- 35000                                     # Size of gridcells (x)
-  gridY <- 35000                                     # Size of gridcells (y)
-  
-  # phy_c_g <- commonGenus %>%
-  #   filter(year %in% begin:end) %>%
-  #   filter(genus == targetGen) %>%
-  #   dplyr::select(occurrence)
-  
+
   if(length(commonGenus$occurrence) > 0){
     
     # Complete zeroes function for genus:
@@ -158,22 +129,22 @@ for (ii in 1:length(unique(commonGenus$genus))){ #length(unique(phy_gen$genus))
         dplyr::filter(abbr %in% selectedDatasets) %>%
         group_by(abbr, year) %>%
         tidyr::complete(nesting(genus),         # these will be completed, with their occurrence
-                        nesting(date, xUTM, yUTM, season),   # Combinations of these parameters are to be found
+                        nesting(date, decimallongitude, decimallatitude, season),   # Combinations of these parameters are to be found
                         fill = list(occurrence = 0)) %>% 
         ungroup() %>%
-        unite(date_xUTM_yUTM, date, xUTM, yUTM, remove = FALSE) %>%
+        unite(date_decimallongitude_decimallatitude, date, decimallongitude, decimallatitude, remove = FALSE) %>%
         filter(genus == targetGen) 
     
     
     # This df contains duplicates from different datasets that have the same location and time, which seems unlikely
     dup_zero_g <- phy_c_g %>% 
-      arrange(genus, date, xUTM, yUTM, occurrence, season) %>%
+      arrange(genus, date, decimallongitude, decimallatitude, occurrence, season) %>%
       select(-datasetID) %>%
       duplicated %>% which
     
     # Create the df with duplicates
     dbs_zero_g <- phy_c_g %>% 
-      arrange(genus, date, xUTM, yUTM, occurrence, season) %>%
+      arrange(genus, date, decimallongitude, decimallatitude, occurrence, season) %>%
       ungroup() %>%
       slice(sort(c(dup_zero_g, dup_zero_g-1))) 
     
@@ -191,19 +162,8 @@ for (ii in 1:length(unique(commonGenus$genus))){ #length(unique(phy_gen$genus))
     
     # Here we remove the duplicates that have the same location and time in different datasets 
     phy_c_g <- phy_c_g %>%
-      distinct(genus, date, xUTM, yUTM, year, season, occurrence, .keep_all = TRUE) %>%
-      select(datasetID, abbr, year, aphiaid, scientificnameaccepted,date, xUTM, yUTM, season, eventid, mrgid, month, occurrence)
-    
-    # #############################################################################
-    # Include the gridnr in the dataframe
-    # #############################################################################
-    grconv <- co2gr(phy_c_g$xUTM, phy_c_g$yUTM, gridX, gridY)  
-    phy_c_g$gridnr <- grconv$gridnr
-    phy_c_g$middleXgrid <- grconv$middleXgrid
-    phy_c_g$middleYgrid <- grconv$middleYgrid
-    
-    # Create a csv file for Leuven to interpolate
-    #csv_Dir <- "product/csv_files/"
+      distinct(genus, date, decimallongitude, decimallatitude, year, season, occurrence, .keep_all = TRUE) %>%
+      select(datasetID, abbr, year, aphiaid, scientificnameaccepted,date, decimallongitude, decimallatitude, season, eventid, mrgid, month, occurrence)
     
     write.csv(phy_c_g, paste0("product/csv_files/", targetGen, "-",  begin, "-", end, ".csv"), row.names = FALSE)
     

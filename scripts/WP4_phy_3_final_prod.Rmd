@@ -47,13 +47,8 @@ temp_phy <- fix_phy %>%
   select(-genus_new)
 
 # #############################################################################
-# 4. Coordinates have to be changed (from WGS84 to UTM)
-phy <- temp_phy %>% 
-  st_as_sf(coords = c('decimallongitude', 'decimallatitude'), crs = 4326) %>%  # This was the old coordinate code
-  st_transform(crs = 32631) %>%                                                # This is the new coordinate code used
-  mutate(xUTM = st_coordinates(.)[,1],                                         # We then extract them and assign them
-         yUTM = st_coordinates(.)[,2]) %>%                                     # to x and y columns
-  st_drop_geometry()                                                           # and drop the old geometry column
+
+phy <- temp_phy 
 
 ```
 
@@ -68,11 +63,11 @@ phy <- temp_phy %>%
 # Species datasets (for which we drop the genus levels only)
 phy_sp <- phy %>%
   filter(!species %in% NA) %>%
-  distinct(aphiaid, datasetID, scientificnameaccepted, date, eventid, xUTM, yUTM, year, season, occurrence, .keep_all = TRUE) 
+  distinct(aphiaid, datasetID, scientificnameaccepted, date, eventid, decimallongitude, decimallatitude, year, season, occurrence, .keep_all = TRUE) 
 
 # Genus datasets
 phy_gen <- phy %>%
-   distinct(genus, datasetID, date, xUTM, yUTM, .keep_all = TRUE) # Here we remove the duplicates that originated due to focussing on genera alone
+   distinct(genus, datasetID, date, decimallongitude, decimallatitude, .keep_all = TRUE) # Here we remove the duplicates that originated due to focussing on genera alone
 # This is something to keep in mind, when plotting the maps and figures.
   
 # #############################################################################
@@ -81,7 +76,7 @@ save(phy_sp, file = "../data/derived_data/phy_sp.Rdata")
 save(phy_gen, file = "../data/derived_data/phy_gen.Rdata")
 
 # bbox
-# phy_gen %>% sf::st_as_sf(coords = c('xUTM','yUTM'), crs = 32631) %>% sf::st_transform(4326) %>% sf::st_bbox()
+phy_gen %>% sf::st_as_sf(coords = c('decimallongitude', 'decimallatitude'), crs = 4326) %>% sf::st_transform(4326) %>% sf::st_bbox()
 
 
 ```

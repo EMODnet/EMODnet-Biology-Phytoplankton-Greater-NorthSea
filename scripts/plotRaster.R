@@ -5,7 +5,7 @@ require(lubridate)
 require(raster)
 require(sp)
 
-remoteCSV = TRUE
+remoteCSV = F
 
 productDir <- "product"
 csvDir <- file.path(productDir, "csv_files")
@@ -23,7 +23,6 @@ for(ii in c(1:length(fileList))){
   Phytoplankton_occurence <- read_delim(fileList[ii], delim = ",")
   # rasterize data
   proWG <- CRS("EPSG:4326")
-  proUTM <- CRS("+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs")
   r1<-raster(ext=extent(-16,9,46,66),ncol=100,nrow=160,crs=proWG,vals=0)
   r2<-raster(ext=extent(-16,9,46,66),ncol=25,nrow=40,crs=proWG,vals=0)
   
@@ -33,9 +32,8 @@ for(ii in c(1:length(fileList))){
     
     seasonalData <- Phytoplankton_occurence %>% dplyr::filter(season == seasons[jj])
     
-    coordinates(seasonalData)<- ~xUTM+yUTM
-    projection(seasonalData)<-proUTM # because data were saved in UTM. Could be changed
-    seasonalData <- sp::spTransform(seasonalData, proWG)
+    coordinates(seasonalData)<- ~decimallongitude+decimallatitude
+    projection(seasonalData)<-proWG # because data were saved in UTM. Could be changed
     sp_r_highres<-rasterize(seasonalData,r1,field="occurrence",fun=mean)
     sp_r_lowres<-rasterize(seasonalData,r2,field="occurrence",fun=mean)
     
@@ -44,10 +42,10 @@ for(ii in c(1:length(fileList))){
     ec<-emodnet_colors()
     spAphId <- taxonNames[ii]
     
-    tifnam <- file.path("product", "tiff", paste(today(), gsub(" ", "-", spAphId), seasons[jj], ".tif", sep = "_"))
+    tifnam_highres <- file.path("product", "tiff", paste(today(), gsub(" ", "-", spAphId), seasons[jj], "_highres.tif", sep = "_"))
     tifnam_lowres <- file.path("product", "tiff", paste(today(), gsub(" ", "-", spAphId), seasons[jj], "_lowres.tif", sep = "_"))
     
-    writeRaster(sp_r_highres, tifnam, options=c('TFW=YES'), overwrite = T)
+    writeRaster(sp_r_highres, tifnam_highres, options=c('TFW=YES'), overwrite = T)
     writeRaster(sp_r_lowres, tifnam_lowres, options=c('TFW=YES'), overwrite = T)
     
     plot_grid_highres <- emodnet_map_plot(data=sp_r_highres,title=paste0(spAphId),subtitle=paste("probability of occurrence in", seasons[jj]),

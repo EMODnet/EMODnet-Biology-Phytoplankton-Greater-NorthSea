@@ -53,7 +53,7 @@ Data from 1995 until now are considered for the current product.
 The regions that were selected were assembled from the intersection of the IHO regions and the EEZ from the different countries. These subregions have ID's that can be used in the WFS query to the EMODnet Biology database.
 
 ```{r mapGreaterNorthSea, message=F, warning=F, comment=F, out.width="50%"}
-regions <- sf::st_read(quiet = T, dsn = "../data/derived_data/greater_north_sea-selection_from_eez-iho_v4.geojson")
+regions <- sf::st_read(quiet = T, dsn = "../data/derived_data/simplified_greater_north_sea-selection_from_eez-iho_v4.geojson")
 regions %>% ggplot() +
   geom_sf(fill = "blue", color = "white") +
   geom_sf_text(aes(label = mrgid), size = 2, color = "white") +
@@ -97,105 +97,11 @@ regions %>% right_join(regionN, by = c(mrgid = "mrgid")) %>%
 ```
 
 
-## Join with trophic mode table
-
-Schneider et al. (submitted) has defined trophic mode for about 1500 species of plankton. A first subdivision is in 
-
-* phytoplankton - phototrophic, no phagotrophy known
-* mixoplankton - capable of phototrophy and phagotrophy
-* zooplankton - phagotrophic, no phototrophy known.
-
-Mixoplankton is subdevided in different classes, but at this moment, we will not use this. 
 
 
 
-```{r}
-trophy <- read_delim("p:/11200463-mixitin-mixotrophs/20.Data/project4_dataPaperTrophy/p7List_All.csv", delim = ";", guess_max = 10000)
-Sys.sleep(10)
-```
 
 
-
-```{r, message=F, warning=F}
-trophyData <- all2Data %>% 
-  mutate(AphiaID = sub("http://marinespecies.org/aphia.php[?]p=taxdetails&id=", "", aphiaid, )) %>% 
-  full_join(trophy, by = c(AphiaID = "AphiaID")) %>% 
-  select(
-    mrgid, datasetID, datecollected, decimallongitude, decimallatitude,
-    scientificname, AphiaID, Trophy, typeMX
-  ) %>%
-  drop_na(Trophy) %>%
-  mutate(
-    season = case_when(
-      month(datecollected) %in% c(6,7,8) ~ "summer", 
-      month(datecollected) %in% c(3,4,5) ~ "spring", 
-      month(datecollected) %in% c(9,10,11) ~ "autumn", 
-      month(datecollected) %in% c(12, 1, 2) ~ "winter"
-    )
-  ) %>% drop_na(season) %>%
-  mutate(season = factor(season, levels = c("winter", "spring", "summer", "autumn")))
-
-
-```
-
-## Fraction of mixoplankton (first results)
-
-As a first approach, the fraction of mixoplankton/(phytoplankto + mixoplankton) is plotted on a map:
-
-
-```{r trophyMap, fig.width=10, fig.height=10, out.width="100%"}
-plottrophy <- trophyData %>%
-  group_by(decimallongitude, decimallatitude, Trophy, season) %>%
-  summarize(n = n()) %>%
-  filter(Trophy %in% c("mixotroph", "phototroph")) %>%
-  spread(Trophy, n) %>%
-  mutate(fMix = mixotroph/(mixotroph + phototroph)) %>%
-  drop_na(fMix)
-
-require(rworldxtra)
-data(countriesHigh)
-world <- st_as_sf(countriesHigh) %>% 
-  filter(REGION == "Europe") %>%
-  filter(ADMIN %in% c("Denmark", "Germany", "Netherlands", "Belgium", "United Kingdom", "France", "Norway", "Sweden")) %>%
-  select(ADMIN)
-
-ggplot() +
-  stat_summary2d(data = plottrophy, aes(x = decimallongitude, y = decimallatitude, z=fMix), fun=mean, binwidth = c(0.5,0.5)) +
-  geom_sf(data = world, fill = "grey", color = "white", alpha = 0.5) +
-  scale_fill_viridis_c() +
-  coord_sf(xlim = c(-15, 15), ylim = c(45, 65)) +
-  facet_wrap(~ season) +
-  EMODnetMapCleanStyle
-```
-
-
-This first analysis shows highest fraction of mixoplankton in summer. Even in summer, the fraction of mixoplankton is still low along the Dutch and Belgian coast. This is in line with Schneider et al. (submitted_1). It is also in line with a general idea that mixoplankton, at least the constitutive mixoplankton, appear in post-bloom clear water conditions, which in the North Sea are associated with offshore, possibly stratified waters. 
-
-
-## Limitations of this analysis
-
-### Incomplete classification
-
-At the moment, only 1500 species could be automatically classified as either phytoplankton or mixoplankton. This means that we are missing a number of species in this analysis, because the data contain more than 5000 species names. Part of those may be heterotrophic, which does not influence the maps above. If we assume that the fractioin of mixoplankton is not very different in these unknown species as compared to the known species, the bias is not very strong. 
-
-```{r}
-all2Data %>% 
-  mutate(AphiaID = sub("http://marinespecies.org/aphia.php[?]p=taxdetails&id=", "", aphiaid, )) %>% 
-  full_join(trophy, by = c(AphiaID = "AphiaID")) %>% 
-  select(
-    mrgid, datasetID, datecollected, decimallongitude, decimallatitude,
-    scientificname, AphiaID, Trophy, typeMX
-  ) %>%
-  group_by(Trophy) %>%
-  summarize(`nr of observations` = n()) %>%
-  ggplot(aes(Trophy, `nr of observations`)) + geom_col(aes(fill = Trophy))
-```
-
-
-
-### Bias in species per dataset
-
-Not all datasets address the same species. For example, the Plankton Recorder data contain species that are retained on a 60 µm filter, which excludes a number of small species. A possible way to get a better grip of the effect of this bias is to only regards species that occur in all (or most) datasets. This still needs to be done. 
 
 
  

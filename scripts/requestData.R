@@ -1,11 +1,12 @@
 #=======================================================================================
 #
-# Willem Stolte
+# Willem Stolte & Luuk van der Heijden
+# Deltares
 # EMODnet Biologie
 # 
 # Last changes:
 # 
-# 2000-06-22
+# 2020-06-22
 # geographical area adapted to EEA greater North Sea and Celtic Seas
 # Now also contains Skagerrak and large part of Kattegat
 # Documented in script "create-regionlist.R"
@@ -68,7 +69,7 @@ for(ii in 1:length(roi$mrgid)){
 }
 
 
-# Extra data that fall outside marine regions
+# Extra data that fall just outside the marine regions polygons
 # Sylt data sets (one per year)
 
 syltdatasetids <- c(5449, 5486:5511)

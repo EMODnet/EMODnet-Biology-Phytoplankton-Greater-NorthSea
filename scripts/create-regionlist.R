@@ -43,7 +43,8 @@ select <- dplyr::select
 # allRegions <- sf::st_read(layerurl)
 # st_crs()
 
-# Selection made by hand in QGIS, exported as json
+# !! Selection made by hand in QGIS, exported as json !!
+
 list.files("data/derived_data")
 roi <- st_read("data/derived_data/simplified_greater_north_sea-selection_from_eez-iho_v4.geojson")
 roi %>% select(mrgid) %>% plot()
