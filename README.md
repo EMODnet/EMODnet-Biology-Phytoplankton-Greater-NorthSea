@@ -2,13 +2,13 @@
 
 ## Introduction
 
-The project aims to produce comprehensive data products of the occurence and absence of (phyto)plankton species. As a basis, data from EMODnet Biology are used. The selection of relevant datasets is optimized in order to find all planktonic species, and exclude all species that are not planktonic. The occurences from EMODnet Biology were complemenented with absence data assuming fixed species lists within each dataset and year. The products are presented as maps of the distribution of the 100 most common species of (phyto)plankton in the Greater North Sea. 
+The project aims to produce comprehensive data products of the occurrence and absence of (phyto)plankton species. As a basis, data from EMODnet Biology are used. The selection of relevant datasets is optimized in order to find all planktonic species, and exclude all species that are not planktonic. The occurrences from EMODnet Biology were complemented with absence data assuming fixed species lists within each dataset and year. The products are presented as maps of the distribution of the 100 most common species of (phyto)plankton in the Greater North Sea. 
 
-This product then is also used for interpolated maps, using the DIVA software. 
+This product then is also used for interpolated maps, using the DIVA software (Barth et al.,  [2014](https://dx.doi.org/10.5194/gmd-7-225-2014), [2020](https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=6588)) 
 
 ## Geographical coverage
 
-The aim is to cover the Greater North Sea. Subareas from the eez-iho layer in marineregions.org were selected as in the map below. Kattegat and Skagerrak were excluded for the moment, but could be added in a later stage. 
+The aim is to cover the Greater North Sea. Subareas from the layer intersect of the Exclusive Economic Zones and IHO sea areas in [marineregions.org](https://marineregions.org)  (Flanders Marine Institute, 2020) were selected as in the map below. Kattegat and Skagerrak were excluded for the moment, but could be added in a later stage. 
 
 ![Map of regions](data/derived_data/regionsOfInterest.png)
 
@@ -21,23 +21,23 @@ All available data from 1995 to current (2020-05-31) were used in this product.
 ## Directory structure
 
 ```
-{{directory_name}}/
-├── analysis
-├── data/
-│   ├── derived_data/
-│   └── raw_data/
-├── docs/
-├── product/
-└── scripts/
+EMODnet-Biology-Phytoplankton-Greater-NorthSea/
+    ├── analysis
+    ├── data/
+    │   ├── derived_data/
+    │   └── raw_data/
+    ├── docs/
+    ├── product/
+    └── scripts/
 ```
 
-* **analysis** - Markdown or Jupyter notebooks
+* **analysis** - Markdown
 * **data** - Raw and derived data
 * **docs** - Rendered reports
 * **product** - Output product files
 * **scripts** - Reusable code
 
-## Data
+## Data series
 
 Raw data were downloaded from EMODnet Biology using WFS requests. This was done in two steps. 
 
@@ -49,7 +49,7 @@ The datasets included were:
 
 | Dataset | EMODnet Biology link |
 | ---------------------------- | ------------------------------------------------------------------ |
-| Continuous Plankton Recorder (Phytoplankton) | https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=785 |		
+| Continuous Plankton Recorder (Phytoplankton) | https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=785 |
 | NODC World Ocean Database 2001: Plankton Data | https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=1985 |
 | REPHY: Network Monitoring phytoplankton | https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=2451 |
 | ICES Phytoplankton Community dataset | https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=4424 |
@@ -71,21 +71,40 @@ The datasets included were:
 
 
 
-```
-wfs requests are described in the script "requestData.R"
-```
+WFS requests are described in the script "requestData.R"
 
-## Analysis
+## Data product
 
 ### Addition of zero values
 
-Within each combination of dataset and year, it was assumed that the potentially occuring species did not vary. For example, if a species was found within a dataset in March at a certain location, it was assumed that this species was always searched for. If in the same dataset, but at another location or at another time, this same species was not reported, it was assumed to be absent. This approach allows for variation in e.g. counting strategy or analyzing lab between years, where perhaps certain species were not looked for in a certain period. 
+Within each combination of dataset and year, it was assumed that the potentially occurring species did not vary. For example, if a species was found within a dataset in March at a certain location, it was assumed that this species was always searched for. If in the same dataset, but at another location or at another time, this same species was not reported, it was assumed to be absent. This approach allows for variation in e.g. counting strategy or analyzing lab between years, where perhaps certain species were not looked for in a certain period. 
 
-For the 100 most abundant species this analysis was done, after which maps were produced with the probability of occurence of a certain species according to the fraction of presences devided by the total sampling effort (number of samples taken). The analyses was done an a course grid and a finer grid, for each season (winter, spring, summer, autumn)
+For the 100 most abundant species this analysis was done, after which maps were produced with the probability of occurrence of a certain species according to the fraction of presences divided by the total sampling effort (number of samples taken). The analyses was done an a course grid and a finer grid, for each season (winter, spring, summer, autumn)
 
-...
+## More information
 
-## Citation
+### References
+
+Barth, A., Beckers, J.-M., Troupin, C., Alvera-Azcárate, A., and Vandenbulcke, L.(2014): divand-1.0: *n*-dimensional variational data analysis for ocean observations, Geosci. Model Dev.,  7, 225–241, https://doi.org/10.5194/gmd-7-225-2014.    
+
+Barth, A., Stolte, W., Troupin, C. & van der Heijden, L. (2020). Probability maps for different phytoplankton species in the North Sea. Integrated data products created under the European Marine Observation Data Network (EMODnet) Biology project (EASME/EMFF/2017/1.3.1.2/02/SI2.789013), funded by the by the European Union under Regulation (EU) No 508/2014 of the European Parliament and of the Council of 15 May 2014 on the European Maritime and Fisheries Fund. Available online at https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=6588
+
+Flanders Marine Institute (2020). The intersect of the Exclusive Economic Zones and IHO sea areas, version 4. Available online at https://www.marineregions.org/.https://doi.org/10.14284/402
+
+### Code and methodology
+
+All code is available on github at: https://github.com/EMODnet/EMODnet-Biology-Phytoplankton-Greater-NorthSea
+
+### Citation and download link
 
 Please cite this product as:
-*{{citation}}*
+
+Stolte, W. & van der Heijden, L. (2020). Presence/Absence maps  of phytoplankton in the Greater North Sea. Integrated data products  created under the European Marine Observation Data Network (EMODnet)  Biology project (EASME/EMFF/2017/1.3.1.2/02/SI2.789013), funded by the  by the European Union under Regulation (EU) No 508/2014 of the European  Parliament and of the Council of 15 May 2014 on the European Maritime  and Fisheries Fund
+
+Available to download in:
+
+https://www.emodnet-biology.eu/data-catalog?module=dataset&dasid=6587
+
+### Authors
+
+[Willem Stolte](https://www.emodnet-biology.eu/data-catalog?module=person&persid=29132) and [Luuk van der Heijden](https://www.emodnet-biology.eu/data-catalog?module=person&persid=39499).
